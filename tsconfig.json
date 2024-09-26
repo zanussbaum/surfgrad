@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "target": "ES2020",
+      "module": "ES2020",
+      "strict": true,
+      "outDir": "./dist",
+      "moduleResolution": "node",
+      "lib": ["ES2020", "DOM"],
+      "types": ["@webgpu/types"]
+    },
+    "include": ["src/**/*"]
+  }
