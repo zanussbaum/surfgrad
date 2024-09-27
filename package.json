@@ -1,15 +1,16 @@
 {
-    "name": "webgpu-test",
-    "version": "1.0.0",
-    "scripts": {
-        "clean": "rm -rf dist", 
-        "build": "tsc",  
-        "start": "http-server -c-1",
-        "dev": "npm run clean && npm run build && npm run start"
-    },
-    "devDependencies": {
-        "@webgpu/types": "^0.1.46",
-        "http-server": "^14.1.0",
-        "typescript": "^5.6.2"
-    }
+  "name": "surfgrad",
+  "version": "1.0.0",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc",
+    "start": "http-server -c-1",
+    "dev": "npm run clean && npm run build && npm run start"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.46",
+    "http-server": "^14.1.0",
+    "prettier": "3.3.3",
+    "typescript": "^5.6.2"
+  }
 }
