@@ -4,7 +4,12 @@ import { Tensor } from '../tensor/tensor.js';
 import { initWebGPU } from '../webgpu/init.js';
 
 export class MatMul extends AutogradFunction {
-  static async forward(ctx: Context, a: Tensor, b: Tensor) {
+  static async forward(ctx: Context | null, a: Tensor, b: Tensor) {
+    // assert shape compatibility
+    if (a.shape[1] !== b.shape[0]) {
+      throw new Error(`Incompatible shapes: ${a.shape} and ${b.shape}`);
+    }
+
     const device = await initWebGPU();
 
     // Load the shader code
@@ -66,10 +71,8 @@ export class MatMul extends AutogradFunction {
     const pass = encoder.beginComputePass();
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(
-      Math.ceil(a.shape[0] / 8),
-      Math.ceil(b.shape[1] / 8)
-    );
+    
+    pass.dispatchWorkgroups(Math.ceil(a.shape[0] / 8), Math.ceil(b.shape[1] / 8), 1);
     pass.end();
 
     // Create a staging buffer to read the results
@@ -98,7 +101,10 @@ export class MatMul extends AutogradFunction {
 
     const resultTensor = new Tensor(resultCopy, [a.shape[0], b.shape[1]], true);
 
-    ctx.save_for_backward(a, b);
+    if (ctx) {
+      const save = [a, b].filter(t => t.requires_grad);
+      ctx.save_for_backward(...save);
+    }
 
     return resultTensor;
   }
@@ -106,9 +112,15 @@ export class MatMul extends AutogradFunction {
   static async backward(ctx: Context, grad_output: Tensor) {
     const [a, b] = ctx.saved_tensors;
 
-    const grad_a = await MatMul.forward(ctx, grad_output, b.transpose());
-    const grad_b = await MatMul.forward(ctx, a.transpose(), grad_output);
+    const b_t = b.transpose();
+  
+    const grad_a = await MatMul.forward(null, grad_output, b_t);
 
+    const a_t = a.transpose();
+  
+    // grad_b calculation: a.T @ grad_output
+    const grad_b = await MatMul.forward(null, a_t, grad_output);
+  
     return [grad_a, grad_b];
   }
 }

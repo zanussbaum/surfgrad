@@ -12,13 +12,15 @@ export class Tensor {
   }
 
   transpose() {
-    const shape = this.shape;
-    const data = new Float32Array(this.data.length);
-    for (let i = 0; i < shape[0]; i++) {
-      for (let j = 0; j < shape[1]; j++) {
-        data[i * shape[1] + j] = this.data[j * shape[0] + i];
+    const [rows, cols] = this.shape;
+    const transposedData = new Float32Array(this.data.length);
+    
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        transposedData[j * rows + i] = this.data[i * cols + j];
       }
     }
-    return new Tensor(data, shape.slice().reverse());
+    
+    return new Tensor(transposedData, [cols, rows], this.requires_grad);
   }
 }
