@@ -5,6 +5,10 @@ export class Tensor {
   grad: Tensor | null;
 
   constructor(data: Float32Array, shape: number[], requires_grad = false) {
+    // if number of elements in data and shape are different, throw error
+    if (data.length !== shape.reduce((a, b) => a * b)) {
+      throw new Error("Incompatible shapes");
+    }
     this.data = data;
     this.shape = shape;
     this.requires_grad = requires_grad;
