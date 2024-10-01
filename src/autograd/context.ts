@@ -7,8 +7,7 @@ export class Context {
     // if saved_tensors is empty
     if (this.saved_tensors.length === 0) {
       this.saved_tensors = tensors;
-    }
-    else {
+    } else {
       // if saved_tensors is not empty, append tensors
       this.saved_tensors = this.saved_tensors.concat(tensors);
     }

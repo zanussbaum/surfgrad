@@ -1,6 +1,8 @@
-import { Tensor } from './tensor/tensor.js';
-import { Context } from './autograd/context.js';
-import { MatMul } from './ops/matmul.js';
+import { Tensor } from "./tensor/tensor.js";
+import { Context } from "./autograd/context.js";
+import { MatMul } from "./ops/matmul.js";
+
+export { Tensor, Context, MatMul };
 
 async function main() {
   // Create tensors
@@ -10,8 +12,12 @@ async function main() {
 
   // Forward pass
   const y = await MatMul.forward(ctx, x, w);
-  
-  const loss = new Tensor(new Float32Array(y.data.length).fill(1), y.shape, true);
+
+  const loss = new Tensor(
+    new Float32Array(y.data.length).fill(1),
+    y.shape,
+    true,
+  );
 
   console.log("Input:", x);
   console.log("Weight:", w);

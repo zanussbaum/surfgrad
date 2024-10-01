@@ -14,13 +14,13 @@ export class Tensor {
   transpose() {
     const [rows, cols] = this.shape;
     const transposedData = new Float32Array(this.data.length);
-    
+
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
         transposedData[j * rows + i] = this.data[i * cols + j];
       }
     }
-    
+
     return new Tensor(transposedData, [cols, rows], this.requires_grad);
   }
 }

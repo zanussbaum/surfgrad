@@ -6,7 +6,7 @@
     "outDir": "./dist",
     "moduleResolution": "node",
     "lib": ["ES2020", "DOM"],
-    "types": ["@webgpu/types", "node", "jest"],
+    "types": ["@webgpu/types", "node", "jest", "playwright"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,5 +19,5 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*"]
 }
