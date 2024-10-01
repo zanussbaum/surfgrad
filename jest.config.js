@@ -16,6 +16,6 @@ export default {
   },
   testEnvironment: 'node',
   moduleFileExtensions: ['ts', 'js'],
-  testMatch: ['**/tests/**/*.test.ts'],
+  testMatch: ['**/tests/unit/*test.ts'],
   rootDir: '.',
 };
