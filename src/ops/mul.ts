@@ -3,23 +3,23 @@ import { Context } from "../autograd/context.js";
 import { Tensor } from "../tensor/tensor.js";
 import { initWebGPU } from "../webgpu/init.js";
 
-export class MatMul extends AutogradFunction {
+export class Mul extends AutogradFunction {
   /**
-   * Performs matrix multiplication on two tensors.
+   * Performs element-wise multiplication on two tensors.
    *
    * @param ctx The autograd context to save the inputs for the backward pass.
    * @param a The input tensor.
-   * @param b The input tensor.
-   * @returns The result of the matrix multiplication.
+   * @param scalar The scalar to multiply the input with.
+   * @returns The result of the element-wise multiplication.
    */
-  static async forward(ctx: Context | null, a: Tensor, b: Tensor) {
-    if (a.shape[1] !== b.shape[0]) {
-      throw new Error(`Incompatible shapes: ${a.shape} and ${b.shape}`);
+  static async forward(ctx: Context | null, a: Tensor, scalar: Tensor) {
+    if (!scalar.shape.every((value, index) => value === [1,][index])) {
+      throw new Error(`Incompatible shapes: ${a.shape} and ${scalar.shape}`);
     }
-
+      
     const device = await initWebGPU();
 
-    const shaderCode = await (await fetch("/src/shaders/matmul.wgsl")).text();
+    const shaderCode = await (await fetch("/src/shaders/mul.wgsl")).text();
     const module = device.createShaderModule({ code: shaderCode });
 
     const pipeline = device.createComputePipeline({
@@ -29,14 +29,14 @@ export class MatMul extends AutogradFunction {
 
     // Create uniform buffer for dimensions
     const uniformBuffer = device.createBuffer({
-      size: 3 * 4,
+      size: 2 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
     device.queue.writeBuffer(
       uniformBuffer,
       0,
-      new Uint32Array([a.shape[0], a.shape[1], b.shape[1]]),
+      new Uint32Array([a.shape[0], a.shape[1]]),
     );
 
     const bufferA = device.createBuffer({
@@ -44,25 +44,27 @@ export class MatMul extends AutogradFunction {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
 
-    const bufferB = device.createBuffer({
-      size: b.data.byteLength,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    const scalarStorageBuffer = device.createBuffer({
+        size: scalar.data.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
 
     const resultBuffer = device.createBuffer({
-      size: a.shape[0] * b.shape[1] * Float32Array.BYTES_PER_ELEMENT,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+        size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     });
 
     device.queue.writeBuffer(bufferA, 0, a.data);
-    device.queue.writeBuffer(bufferB, 0, b.data);
+
+    // Convert the scalar to a Float32Array before writing
+    device.queue.writeBuffer(scalarStorageBuffer, 0, scalar.data);
 
     const bindGroup = device.createBindGroup({
       layout: pipeline.getBindGroupLayout(0),
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: bufferA } },
-        { binding: 2, resource: { buffer: bufferB } },
+        { binding: 2, resource: { buffer: scalarStorageBuffer } },
         { binding: 3, resource: { buffer: resultBuffer } },
       ],
     });
@@ -76,14 +78,14 @@ export class MatMul extends AutogradFunction {
     const WORKGROUP_SIZE = 32;
     pass.dispatchWorkgroups(
       Math.ceil(a.shape[0] / WORKGROUP_SIZE),
-      Math.ceil(b.shape[1] / WORKGROUP_SIZE),
+      Math.ceil(a.shape[1] / WORKGROUP_SIZE),
       1,
     );
     pass.end();
 
     // Create a staging buffer to read the results
     const stagingBuffer = device.createBuffer({
-      size: a.shape[0] * b.shape[1] * Float32Array.BYTES_PER_ELEMENT,
+      size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
 
@@ -102,27 +104,28 @@ export class MatMul extends AutogradFunction {
     const resultCopy = new Float32Array(resultArray);
     stagingBuffer.unmap();
 
-    const resultTensor = new Tensor(resultCopy, [a.shape[0], b.shape[1]], true);
+    const resultTensor = new Tensor(resultCopy, [a.shape[0], a.shape[1]], true);
 
     if (ctx) {
-      ctx.save_for_backward(a, b);
+      ctx.save_for_backward(a, scalar);
     }
 
     return resultTensor;
   }
 
   static async backward(ctx: Context, grad_output: Tensor) {
-    const [a, b] = ctx.saved_tensors;
+    const [a, scalar] = ctx.saved_tensors;
 
-    const b_t = b.transpose();
+    let grad_a = null
+    if (a.requires_grad == true){
+      grad_a = await Mul.forward(null, grad_output, scalar);
+    }
 
-    const grad_a = await MatMul.forward(null, grad_output, b_t);
+    let grad_scalar = null
+    if (scalar.requires_grad == true){
+      grad_scalar = await Mul.forward(null, grad_output, a);
+    }
 
-    const a_t = a.transpose();
-
-    // grad_b calculation: a.T @ grad_output
-    const grad_b = await MatMul.forward(null, a_t, grad_output);
-
-    return [grad_a, grad_b];
+    return [grad_a, grad_scalar];
   }
-}
+};

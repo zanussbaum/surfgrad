@@ -6,9 +6,10 @@ test("MatMul forward and backward pass", async ({ page }) => {
   // Inject your test function
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
+      // @ts-ignore
       import("/dist/bundle.js").then((module) => {
         const { Tensor, Context, MatMul } = module;
-
+        // @ts-ignore    
         window.runMatMulTest = async function () {
           const x = new Tensor(
             new Float32Array([1, 2, 3, 4, 5, 6]),
@@ -49,6 +50,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
   });
 
   // Run the test function in the browser context
+  // @ts-ignore
   const result = await page.evaluate(() => window.runMatMulTest());
 
   // Perform assertions

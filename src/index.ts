@@ -1,36 +1,33 @@
 import { Tensor } from "./tensor/tensor.js";
 import { Context } from "./autograd/context.js";
 import { MatMul } from "./ops/matmul.js";
+import { Mul } from "./ops/mul.js"
 
-export { Tensor, Context, MatMul };
+export { Tensor, Context, MatMul, Mul };
 
 async function main() {
   // Create tensors
   const x = new Tensor(new Float32Array([1, 2, 3, 4, 5, 6]), [3, 2], true);
-  const w = new Tensor(new Float32Array([0.1, 0.2, 0.3, 0.4]), [2, 2], true);
+  const scalar = new Tensor(new Float32Array([.1]), [1,], false);
   const ctx = new Context();
 
   // Forward pass
-  const y = await MatMul.forward(ctx, x, w);
+  const y = await Mul.forward(ctx, x, scalar);
 
   const loss = new Tensor(
-    new Float32Array(y.data.length).fill(1),
+    new Float32Array(y.data),
     y.shape,
     true,
   );
 
   console.log("Input:", x);
-  console.log("Weight:", w);
-  console.log("Output:", y);
-  console.log("Context:", ctx);
-  console.log("Loss:", loss);
+  console.log("Scalar:", scalar);
+  console.log("Output:", y)
 
-  // Assume some loss gradient flowing back is all ones
-  // Backward pass
-  const [grad_x, grad_w] = await MatMul.backward(ctx, loss);
+  const [grad_x,] = await Mul.backward(ctx, loss);
 
   console.log("Gradient of x:", grad_x);
-  console.log("Gradient of w:", grad_w);
+
 }
 
 main().catch(console.error);
