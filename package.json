@@ -10,7 +10,7 @@
     "dev": "npm run build-clean && npm run start",
     "prettier": "prettier --write .",
     "build-bundle": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --format=esm",
-    "unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "unit": "npm run build-clean && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "integration": "npm run build-clean && npx playwright test"
   },
   "devDependencies": {
