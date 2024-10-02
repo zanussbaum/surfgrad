@@ -14,7 +14,6 @@ export class Mul extends AutogradFunction {
    */
   static async forward(ctx: Context | null, a: Tensor, scalar: Tensor) {
     // if number of elements in data and scalar are different
-    console.log(a.shape, scalar.shape);
     // check that shapes are compatible
     if (a.shape.every((value, index) => value !== scalar.shape[index])) {
       // if scalar is a single value, broadcast it to the shape of a

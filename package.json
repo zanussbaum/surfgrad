@@ -14,7 +14,7 @@
     "build-bundle": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --format=esm",
     "unit": "npm run build-clean && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "integration": "npm run build-clean && npx playwright test",
-    "benchmark": "npm run build && cd benchmarks && npm install && npm start"
+    "benchmark": "npm run build-clean && cd benchmarks && npm install && npm start"
   },
   "devDependencies": {
     "@playwright/test": "^1.47.2",
