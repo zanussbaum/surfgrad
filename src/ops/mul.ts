@@ -13,10 +13,10 @@ export class Mul extends AutogradFunction {
    * @returns The result of the element-wise multiplication.
    */
   static async forward(ctx: Context | null, a: Tensor, scalar: Tensor) {
-    if (!scalar.shape.every((value, index) => value === [1,][index])) {
+    if (!scalar.shape.every((value, index) => value === [1][index])) {
       throw new Error(`Incompatible shapes: ${a.shape} and ${scalar.shape}`);
     }
-      
+
     const device = await initWebGPU();
 
     const shaderCode = await (await fetch("/src/shaders/mul.wgsl")).text();
@@ -45,13 +45,13 @@ export class Mul extends AutogradFunction {
     });
 
     const scalarStorageBuffer = device.createBuffer({
-        size: scalar.data.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      size: scalar.data.byteLength,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
 
     const resultBuffer = device.createBuffer({
-        size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+      size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     });
 
     device.queue.writeBuffer(bufferA, 0, a.data);
@@ -116,16 +116,16 @@ export class Mul extends AutogradFunction {
   static async backward(ctx: Context, grad_output: Tensor) {
     const [a, scalar] = ctx.saved_tensors;
 
-    let grad_a = null
-    if (a.requires_grad == true){
+    let grad_a = null;
+    if (a.requires_grad == true) {
       grad_a = await Mul.forward(null, grad_output, scalar);
     }
 
-    let grad_scalar = null
-    if (scalar.requires_grad == true){
+    let grad_scalar = null;
+    if (scalar.requires_grad == true) {
       grad_scalar = await Mul.forward(null, grad_output, a);
     }
 
     return [grad_a, grad_scalar];
   }
-};
+}

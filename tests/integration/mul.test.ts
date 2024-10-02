@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-
-test("Elementwise multiplication forward and backward pass", async ({ page }) => {
+test("Elementwise multiplication forward and backward pass", async ({
+  page,
+}) => {
   await page.goto("http://localhost:8080");
 
   // Inject your test function
@@ -16,23 +17,15 @@ test("Elementwise multiplication forward and backward pass", async ({ page }) =>
           const x = new Tensor(
             new Float32Array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
             [2, 3],
-            true
+            true,
           );
-          const y = new Tensor(
-            new Float32Array([2.0]),
-            [1,],
-            false
-          );
+          const y = new Tensor(new Float32Array([2.0]), [1], false);
           const ctx = new Context();
 
           // Forward pass
           const z = await Mul.forward(ctx, x, y);
 
-          const loss = new Tensor(
-            new Float32Array(z.data),
-            z.shape,
-            true
-          );
+          const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 
           // Backward pass
           const [grad_x, grad_y] = await Mul.backward(ctx, loss);
@@ -57,7 +50,7 @@ test("Elementwise multiplication forward and backward pass", async ({ page }) =>
 
   // Perform assertions
   expect(result.x.shape).toEqual([2, 3]);
-  expect(result.y.shape).toEqual([1,]);
+  expect(result.y.shape).toEqual([1]);
   expect(result.z.shape).toEqual([2, 3]);
   expect(result.grad_x.shape).toEqual([2, 3]);
   // check that grad_y is null
@@ -66,9 +59,7 @@ test("Elementwise multiplication forward and backward pass", async ({ page }) =>
   const zData = new Float32Array(Object.values(result.z.data));
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
 
-  expect(zData).toEqual(
-    new Float32Array([2.0, 4.0, 6.0, 8.0, 10.0, 12.0]),
-  );
+  expect(zData).toEqual(new Float32Array([2.0, 4.0, 6.0, 8.0, 10.0, 12.0]));
 
   expect(gradXData).toEqual(
     new Float32Array([4.0, 8.0, 12.0, 16.0, 20.0, 24.0]),

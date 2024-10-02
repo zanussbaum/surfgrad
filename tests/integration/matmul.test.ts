@@ -9,7 +9,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
       // @ts-ignore
       import("/dist/bundle.js").then((module) => {
         const { Tensor, Context, MatMul } = module;
-        // @ts-ignore    
+        // @ts-ignore
         window.runMatMulTest = async function () {
           const x = new Tensor(
             new Float32Array([1, 2, 3, 4, 5, 6]),

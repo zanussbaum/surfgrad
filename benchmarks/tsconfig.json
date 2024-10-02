@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "esnext",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "surfgrad/*": ["../src/*"]
+    },
+    "jsx": "react",
+    "types": ["@webgpu/types"]
+  },
+  "include": ["src/**/*"]
+}

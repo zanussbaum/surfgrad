@@ -17,7 +17,9 @@
     "rootDirs": ["src", "tests"],
     "allowJs": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true
   },
   "include": ["src/**/*"]
 }

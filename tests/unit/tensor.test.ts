@@ -24,7 +24,7 @@ describe("Tensor", () => {
     it("should throw an error if the number of elements in data and shape are different", () => {
       const data = new Float32Array([1, 2, 3]);
       const shape = [2, 2];
-      
+
       expect(() => new Tensor(data, shape)).toThrow("Incompatible shapes");
     });
   });
