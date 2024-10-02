@@ -15,6 +15,12 @@ export class Tensor {
     this.grad = null;
   }
 
+  static full(shape: number[], value: number, requires_grad = false) {
+    const data = new Float32Array(shape.reduce((a, b) => a * b)).fill(value);
+
+    return new Tensor(data, shape, requires_grad);
+  }
+
   transpose() {
     const [rows, cols] = this.shape;
     const transposedData = new Float32Array(this.data.length);
