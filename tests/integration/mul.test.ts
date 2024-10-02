@@ -87,7 +87,11 @@ test("Elementwise multiplication forward and backward pass", async ({
             [2, 3],
             true,
           );
-          const y = new Tensor(new Float32Array([2.0, 0.5, 2.0, 0.5, 2.0, 0.5]), [2, 3], true);
+          const y = new Tensor(
+            new Float32Array([2.0, 0.5, 2.0, 0.5, 2.0, 0.5]),
+            [2, 3],
+            true,
+          );
           const ctx = new Context();
 
           // Forward pass
@@ -129,12 +133,10 @@ test("Elementwise multiplication forward and backward pass", async ({
 
   expect(zData).toEqual(new Float32Array([2.0, 1.0, 6.0, 2.0, 10.0, 3.0]));
 
-  expect(gradXData).toEqual(
-    new Float32Array([4.0, 0.5, 12.0, 1.0, 20.0, 1.5]),
-  );
+  expect(gradXData).toEqual(new Float32Array([4.0, 0.5, 12.0, 1.0, 20.0, 1.5]));
 
   expect(gradYData).toEqual(
-    new Float32Array([2.0, 2.0, 18.0, 8.0, 50.0, 18.0]), 
+    new Float32Array([2.0, 2.0, 18.0, 8.0, 50.0, 18.0]),
   );
 
   await page.close();

@@ -14,17 +14,15 @@ export class Mul extends AutogradFunction {
    */
   static async forward(ctx: Context | null, a: Tensor, scalar: Tensor) {
     // if number of elements in data and scalar are different
-    console.log(a.shape, scalar.shape)
+    console.log(a.shape, scalar.shape);
     // check that shapes are compatible
     if (a.shape.every((value, index) => value !== scalar.shape[index])) {
       // if scalar is a single value, broadcast it to the shape of a
       if (scalar.shape.length === 1 && scalar.shape[0] === 1) {
         scalar = Tensor.full(a.shape, scalar.data[0], scalar.requires_grad);
-      }
-      else {
+      } else {
         throw new Error(`Incompatible shapes: ${a.shape} and ${scalar.shape}`);
       }
-
     }
 
     const device = await initWebGPU();
