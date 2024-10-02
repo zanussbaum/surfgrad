@@ -8,13 +8,13 @@ struct Dimensions {
 @group(0) @binding(2) var<storage, read> scalar: array<f32>;
 @group(0) @binding(3) var<storage, read_write> result: array<f32>;
 
-@compute @workgroup_size(8, 8)
+@compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-  let row: u32 = global_id.x;
-  let col: u32 = global_id.y;
+  let global_idx = global_id.x;
+  let row = global_idx / dimensions.N;
+  let col = global_idx % dimensions.N;
 
-  if (row < dimensions.M && col < dimensions.N) {
-    let index = row * dimensions.N + col;
-    result[index] = a[index] * scalar[index];
+  if (global_idx < dimensions.M * dimensions.N) {
+    result[row * dimensions.N + col] = a[row * dimensions.N + col] * scalar[row * dimensions.N + col];
   }
 }

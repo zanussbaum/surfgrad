@@ -20,7 +20,7 @@ async function runSingleBenchmark(
   shader: string,
   size: number,
   warmupRuns: number = 10,
-  benchmarkRuns: number = 10,
+  benchmarkRuns: number = 20,
 ): Promise<BenchmarkResult> {
   const a = new Tensor(createRandomMatrix(size), [size, size]);
   const b = new Tensor(createRandomMatrix(size), [size, size]);

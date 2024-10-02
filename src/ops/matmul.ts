@@ -73,12 +73,8 @@ export class MatMul extends AutogradFunction {
     pass.setBindGroup(0, bindGroup);
 
     // Adjust workgroup size for better occupancy
-    const WORKGROUP_SIZE = 32;
-    pass.dispatchWorkgroups(
-      Math.ceil(a.shape[0] / WORKGROUP_SIZE),
-      Math.ceil(b.shape[1] / WORKGROUP_SIZE),
-      1,
-    );
+    const WORKGROUP_SIZE = 64;
+    pass.dispatchWorkgroups(Math.ceil(a.shape[0] / WORKGROUP_SIZE));
     pass.end();
 
     // Create a staging buffer to read the results
