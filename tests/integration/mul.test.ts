@@ -5,6 +5,10 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
 }) => {
   await page.goto("http://localhost:8080");
 
+  page.on('console', (msg) => {
+    console.log(msg);
+  });
+
   // Inject your test function
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
@@ -22,13 +26,15 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
           const y = new Tensor(new Float32Array([2.0]), [1], false);
           const ctx = new Context();
 
+          let operation = await Mul.create();
+
           // Forward pass
-          const z = await Mul.forward(ctx, x, y);
+          const z = await operation.forward(ctx, x, y);
 
           const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 
           // Backward pass
-          const [grad_x, grad_y] = await Mul.backward(ctx, loss);
+          const [grad_x, grad_y] = await operation.backward(ctx, loss);
 
           return {
             x: x,
@@ -53,8 +59,8 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
   expect(result.y.shape).toEqual([1]);
   expect(result.z.shape).toEqual([2, 3]);
   expect(result.grad_x.shape).toEqual([2, 3]);
-  // check that grad_y is null
-  expect(result.grad_y).toBeNull();
+  // check that grad_y is undefined
+  expect(result.grad_y).toBeUndefined();
 
   const zData = new Float32Array(Object.values(result.z.data));
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
@@ -94,13 +100,15 @@ test("Elementwise multiplication forward and backward pass", async ({
           );
           const ctx = new Context();
 
+          let operation = await Mul.create();
+
           // Forward pass
-          const z = await Mul.forward(ctx, x, y);
+          const z = await operation.forward(ctx, x, y);
 
           const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 
           // Backward pass
-          const [grad_x, grad_y] = await Mul.backward(ctx, loss);
+          const [grad_x, grad_y] = await operation.backward(ctx, loss);
 
           return {
             x: x,

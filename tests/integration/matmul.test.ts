@@ -3,6 +3,10 @@ import { test, expect } from "@playwright/test";
 test("MatMul forward and backward pass", async ({ page }) => {
   await page.goto("http://localhost:8080");
 
+  page.on('console', (msg) => {
+    console.log(msg);
+  });
+
   // Inject your test function
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
@@ -23,8 +27,10 @@ test("MatMul forward and backward pass", async ({ page }) => {
           );
           const ctx = new Context();
 
+          let operation = await MatMul.create();
+
           // Forward pass
-          const y = await MatMul.forward(ctx, x, w);
+          const y = await operation.forward(ctx, x, w);
 
           const loss = new Tensor(
             new Float32Array(y.data.length).fill(1),
@@ -33,7 +39,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
           );
 
           // Backward pass
-          const [grad_x, grad_w] = await MatMul.backward(ctx, loss);
+          const [grad_x, grad_w] = await operation.backward(ctx, loss);
 
           return {
             x: x,

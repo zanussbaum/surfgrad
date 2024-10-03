@@ -7,7 +7,7 @@ export class Tensor {
   constructor(data: Float32Array, shape: number[], requires_grad = false) {
     // if number of elements in data and shape are different, throw error
     if (data.length !== shape.reduce((a, b) => a * b)) {
-      throw new Error("Incompatible shapes");
+      throw new Error("Incompatible shapes. Data and shape do not match. {data: " + data.length + ", shape: " + shape.reduce((a, b) => a * b) + "}");
     }
     this.data = data;
     this.shape = shape;

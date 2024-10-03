@@ -1,4 +1,5 @@
 import { MatMul, Mul, Tensor } from "surfgrad";
+import { AutogradFunction } from "../../dist/autograd/function";
 
 interface BenchmarkResult {
   shader: string;
@@ -25,7 +26,18 @@ async function runSingleBenchmark(
   const a = new Tensor(createRandomMatrix(size), [size, size]);
   const b = new Tensor(createRandomMatrix(size), [size, size]);
 
-  const op = shader === "matmul" ? MatMul : Mul;
+  // Create op
+  let op: AutogradFunction;
+  switch (shader) {
+    case "matmul":
+      op = await MatMul.create();
+      break;
+    case "mul":
+      op = await Mul.create();
+      break;
+    default:
+      throw new Error(`Unknown shader: ${shader}`);
+  }
 
   // Warmup runs
   for (let i = 0; i < warmupRuns; i++) {

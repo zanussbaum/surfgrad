@@ -1,9 +1,21 @@
 import { Context } from "./context.js";
+import { Tensor } from "../tensor/tensor.js";
 
 export abstract class AutogradFunction {
-  static forward(ctx: Context, ...inputs: any[]): any {}
+  protected initialized: boolean = false;
 
-  static backward(ctx: Context, grad_output: any): any {
-    throw new Error("Not implemented");
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+    // Perform any common initialization here
+    this.initialized = true;
+  }
+
+  abstract forward(ctx: Context | null, ...inputs: Tensor[]): Promise<Tensor>;
+
+  abstract backward(ctx: Context, grad_output: Tensor): Promise<Tensor[]>;
+
+  cleanup(): void {
+    // Perform any common cleanup here
+    this.initialized = false;
   }
 }

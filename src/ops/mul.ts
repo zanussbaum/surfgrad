@@ -4,19 +4,62 @@ import { Tensor } from "../tensor/tensor.js";
 import { initWebGPU } from "../webgpu/init.js";
 
 export class Mul extends AutogradFunction {
+  private device: GPUDevice | null = null;
+  private pipeline: GPUComputePipeline | null = null;
+  private shaderModule: GPUShaderModule | null = null;
+  private bindGroupLayout: GPUBindGroupLayout | null = null;
+
   /**
    * Performs element-wise multiplication on two tensors.
-   *
-   * @param ctx The autograd context to save the inputs for the backward pass.
-   * @param a The input tensor.
-   * @param scalar The scalar to multiply the input with.
-   * @returns The result of the element-wise multiplication.
    */
-  static async forward(ctx: Context | null, a: Tensor, scalar: Tensor) {
-    // if number of elements in data and scalar are different
-    // check that shapes are compatible
+  private constructor() {
+    super();
+  }
+
+  static async create(): Promise<Mul> {
+    const instance = new Mul();
+    await instance.initialize();
+    return instance;
+  }
+
+  async initialize() {
+    if (this.initialized) return;
+
+    this.device = await initWebGPU();
+
+    const shaderCode = await (await fetch("/src/shaders/mul.wgsl")).text();
+    this.shaderModule = this.device.createShaderModule({ code: shaderCode });
+
+    const visibility = GPUShaderStage.COMPUTE;
+
+    this.bindGroupLayout = this.device.createBindGroupLayout({
+      entries: [
+        { binding: 0, visibility: visibility, buffer: { type: "uniform" } },
+        { binding: 1, visibility: visibility, buffer: { type: "read-only-storage" } },
+        { binding: 2, visibility: visibility, buffer: { type: "read-only-storage" } },
+        { binding: 3, visibility: visibility, buffer: { type: "storage" } },
+      ]
+    });
+
+    const pipelineLayout = this.device.createPipelineLayout({
+      bindGroupLayouts: [this.bindGroupLayout],
+    });
+
+    this.pipeline = this.device.createComputePipeline({
+      layout: pipelineLayout,
+      compute: { module: this.shaderModule, entryPoint: "main" },
+    });
+
+    this.initialized = true;
+  }
+
+  async forward(ctx: Context | null, a: Tensor, scalar: Tensor) {
+    if (!this.device || !this.pipeline || !this.bindGroupLayout) {
+      throw new Error("Mul is not properly initialized");
+    }
+
+    // Check shapes and broadcast scalar if necessary
     if (a.shape.every((value, index) => value !== scalar.shape[index])) {
-      // if scalar is a single value, broadcast it to the shape of a
       if (scalar.shape.length === 1 && scalar.shape[0] === 1) {
         scalar = Tensor.full(a.shape, scalar.data[0], scalar.requires_grad);
       } else {
@@ -24,50 +67,38 @@ export class Mul extends AutogradFunction {
       }
     }
 
-    const device = await initWebGPU();
-
-    const shaderCode = await (await fetch("/src/shaders/mul.wgsl")).text();
-    const module = device.createShaderModule({ code: shaderCode });
-
-    const pipeline = device.createComputePipeline({
-      layout: "auto",
-      compute: { module, entryPoint: "main" },
-    });
-
     // Create uniform buffer for dimensions
-    const uniformBuffer = device.createBuffer({
+    const uniformBuffer = this.device.createBuffer({
       size: 2 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
-    device.queue.writeBuffer(
+    this.device.queue.writeBuffer(
       uniformBuffer,
       0,
       new Uint32Array([a.shape[0], a.shape[1]]),
     );
 
-    const bufferA = device.createBuffer({
+    const bufferA = this.device.createBuffer({
       size: a.data.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
 
-    const scalarStorageBuffer = device.createBuffer({
+    const scalarStorageBuffer = this.device.createBuffer({
       size: scalar.data.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
 
-    const resultBuffer = device.createBuffer({
+    const resultBuffer = this.device.createBuffer({
       size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     });
 
-    device.queue.writeBuffer(bufferA, 0, a.data);
+    this.device.queue.writeBuffer(bufferA, 0, a.data);
+    this.device.queue.writeBuffer(scalarStorageBuffer, 0, scalar.data);
 
-    // Convert the scalar to a Float32Array before writing
-    device.queue.writeBuffer(scalarStorageBuffer, 0, scalar.data);
-
-    const bindGroup = device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
+    const bindGroup = this.device.createBindGroup({
+      layout: this.bindGroupLayout,
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: bufferA } },
@@ -76,18 +107,16 @@ export class Mul extends AutogradFunction {
       ],
     });
 
-    const encoder = device.createCommandEncoder();
+    const encoder = this.device.createCommandEncoder();
     const pass = encoder.beginComputePass();
-    pass.setPipeline(pipeline);
+    pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, bindGroup);
 
-    // Adjust workgroup size for better occupancy
     const WORKGROUP_SIZE = 64;
     pass.dispatchWorkgroups(Math.ceil(a.shape[0] / WORKGROUP_SIZE));
     pass.end();
 
-    // Create a staging buffer to read the results
-    const stagingBuffer = device.createBuffer({
+    const stagingBuffer = this.device.createBuffer({
       size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
@@ -100,7 +129,7 @@ export class Mul extends AutogradFunction {
       stagingBuffer.size,
     );
 
-    device.queue.submit([encoder.finish()]);
+    this.device.queue.submit([encoder.finish()]);
 
     await stagingBuffer.mapAsync(GPUMapMode.READ);
     const resultArray = new Float32Array(stagingBuffer.getMappedRange());
@@ -109,6 +138,14 @@ export class Mul extends AutogradFunction {
 
     const resultTensor = new Tensor(resultCopy, [a.shape[0], a.shape[1]], true);
 
+    //Cleanup temporary buffers
+    uniformBuffer.destroy();
+    bufferA.destroy();
+    scalarStorageBuffer.destroy();
+    resultBuffer.destroy();
+    stagingBuffer.destroy();
+
+
     if (ctx) {
       ctx.save_for_backward(a, scalar);
     }
@@ -116,19 +153,26 @@ export class Mul extends AutogradFunction {
     return resultTensor;
   }
 
-  static async backward(ctx: Context, grad_output: Tensor) {
-    const [a, scalar] = ctx.saved_tensors;
+  async backward(ctx: Context, grad_output: Tensor): Promise<Tensor[]> {
+    const [a, scalar] = ctx.saved_tensors as [Tensor, Tensor];
 
-    let grad_a = null;
-    if (a.requires_grad == true) {
-      grad_a = await Mul.forward(null, grad_output, scalar);
-    }
+    const grad_a = a.requires_grad
+      ? await this.forward(null, grad_output, scalar)
+      : null;
+    const grad_scalar = scalar.requires_grad
+      ? await this.forward(null, grad_output, a)
+      : null;
 
-    let grad_scalar = null;
-    if (scalar.requires_grad == true) {
-      grad_scalar = await Mul.forward(null, grad_output, a);
-    }
+    return [grad_a, grad_scalar].filter(
+      (tensor): tensor is Tensor => tensor !== null,
+    );
+  }
 
-    return [grad_a, grad_scalar];
+  cleanup(): void {
+    super.cleanup();
+    this.device = null;
+    this.pipeline = null;
+    this.shaderModule = null;
+    this.initialized = false;
   }
 }
