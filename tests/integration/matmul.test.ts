@@ -29,7 +29,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
           let operation = await MatMul.create();
 
           // Forward pass
-          const y = await operation.forward(x, w);
+          const [y, _] = await operation.forward(x, w);
 
           const loss = new Tensor(
             new Float32Array(y.data.length).fill(1),

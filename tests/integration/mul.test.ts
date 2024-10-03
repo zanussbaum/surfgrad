@@ -28,7 +28,7 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
           let operation = await Mul.create();
 
           // Forward pass
-          const z = await operation.forward(x, y);
+          const [z, _] = await operation.forward(x, y);
 
           const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 
@@ -101,7 +101,7 @@ test("Elementwise multiplication forward and backward pass", async ({
           let operation = await Mul.create();
 
           // Forward pass
-          const z = await operation.forward(x, y);
+          const [z, _] = await operation.forward(x, y);
 
           const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 

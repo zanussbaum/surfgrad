@@ -1,4 +1,4 @@
-import { MatMul, Mul, Tensor, Add } from "surfgrad";
+import { MatMul, Mul, Tensor, Add, Exp, Log } from "surfgrad";
 import { AutogradFunction } from "../../dist/autograd/function";
 
 interface BenchmarkResult {
@@ -12,8 +12,34 @@ function createRandomMatrix(size: number): Float32Array {
   return Float32Array.from({ length: size * size }, () => Math.random());
 }
 
-function calculateGFLOPS(size: number, timeMs: number): number {
-  const operations = 2 * Math.pow(size, 3);
+function calculateGFLOPS(
+  operation: string,
+  size: number,
+  timeMs: number,
+): number {
+  let operations: number;
+
+  switch (operation.toLowerCase()) {
+    case "matmul":
+      // For matrix multiplication: 2 * n^3 - n^2 operations
+      operations = 2 * Math.pow(size, 3) - Math.pow(size, 2);
+      break;
+    case "mul":
+    case "add":
+      // Element-wise operations: n^2 for n x n matrices
+      operations = Math.pow(size, 2);
+      break;
+    case "exp":
+    case "log":
+      // Element-wise operations: n for n elements
+      operations = size;
+      break;
+    default:
+      throw new Error(
+        "Unsupported operation. Please use 'matmul', 'mul', 'add', 'exp', or 'log'.",
+      );
+  }
+
   return operations / (timeMs / 1000) / 1e9;
 }
 
@@ -39,6 +65,12 @@ async function runSingleBenchmark(
     case "add":
       op = await Add.create();
       break;
+    case "exp":
+      op = await Exp.create();
+      break;
+    case "log":
+      op = await Log.create();
+      break;
     default:
       throw new Error(`Unknown shader: ${shader}`);
   }
@@ -51,14 +83,12 @@ async function runSingleBenchmark(
   // Benchmark runs
   const times: number[] = [];
   for (let i = 0; i < benchmarkRuns; i++) {
-    const startTime = performance.now();
-    await op.forward(a, b);
-    const endTime = performance.now();
-    times.push(endTime - startTime);
+    const [result, total_time] = await op.forward(a, b);
+    times.push(total_time);
   }
 
   const averageTime = times.reduce((a, b) => a + b, 0) / times.length;
-  const gflops = calculateGFLOPS(size, averageTime);
+  const gflops = calculateGFLOPS(shader, size, averageTime);
 
   return { shader, size, averageTime, gflops };
 }

@@ -16,7 +16,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let col = index % dimensions.N;
 
   if (index < dimensions.M * dimensions.N) {
-    var sum = 0.0;
+    var sum : f32 = 0.0;
     for (var i: u32 = 0u; i < dimensions.K; i = i + 1u) {
       sum = sum + a[row * dimensions.K + i] * b[i * dimensions.N + col];
     }
