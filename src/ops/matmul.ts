@@ -111,7 +111,7 @@ export class MatMul extends AutogradFunction {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, bindGroup);
 
-    const WORKGROUP_SIZE = 64;
+    const WORKGROUP_SIZE = 256;
     pass.dispatchWorkgroups(Math.ceil(a.shape[0] / WORKGROUP_SIZE));
     pass.end();
 
