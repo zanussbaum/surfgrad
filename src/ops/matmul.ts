@@ -39,10 +39,18 @@ export class MatMul extends AutogradFunction {
     this.bindGroupLayout = this.device.createBindGroupLayout({
       entries: [
         { binding: 0, visibility: visibility, buffer: { type: "uniform" } },
-        { binding: 1, visibility: visibility, buffer: { type: "read-only-storage" } },
-        { binding: 2, visibility: visibility, buffer: { type: "read-only-storage" } },
+        {
+          binding: 1,
+          visibility: visibility,
+          buffer: { type: "read-only-storage" },
+        },
+        {
+          binding: 2,
+          visibility: visibility,
+          buffer: { type: "read-only-storage" },
+        },
         { binding: 3, visibility: visibility, buffer: { type: "storage" } },
-      ]
+      ],
     });
 
     const pipelineLayout = this.device.createPipelineLayout({
@@ -57,7 +65,7 @@ export class MatMul extends AutogradFunction {
     this.initialized = true;
   }
 
-  async forward(ctx: Context | null, a: Tensor, b: Tensor) {
+  async forward(a: Tensor, b: Tensor) {
     if (!this.device || !this.pipeline || !this.bindGroupLayout) {
       throw new Error("MatMul is not properly initialized");
     }
@@ -65,7 +73,6 @@ export class MatMul extends AutogradFunction {
     if (a.shape[1] !== b.shape[0]) {
       throw new Error(`Incompatible shapes: ${a.shape} and ${b.shape}`);
     }
-
 
     const uniformBuffer = this.device.createBuffer({
       size: 3 * 4,
@@ -137,10 +144,9 @@ export class MatMul extends AutogradFunction {
 
     const resultTensor = new Tensor(resultCopy, [a.shape[0], b.shape[1]], true);
 
-    if (ctx) {
-      ctx.save_for_backward(a, b);
+    if ((a.requires_grad || b.requires_grad) && this.context) {
+      this.context.save_for_backward(a, b);
     }
-
     // clean up buffers
     bufferA.destroy();
     bufferB.destroy();
@@ -150,17 +156,22 @@ export class MatMul extends AutogradFunction {
     return resultTensor;
   }
 
-  async backward(ctx: Context, grad_output: Tensor) {
-    const [a, b] = ctx.saved_tensors;
+  async backward(grad_output: Tensor) {
+    if (!this.context) {
+      throw new Error("Context is null; did you already call Matmul.backward?");
+    }
+    const [a, b] = this.context.saved_tensors;
+
+    this.context = null;
 
     const b_t = b.transpose();
 
-    const grad_a = await this.forward(null, grad_output, b_t);
+    const grad_a = await this.forward(grad_output, b_t);
 
     const a_t = a.transpose();
 
     // grad_b calculation: a.T @ grad_output
-    const grad_b = await this.forward(null, a_t, grad_output);
+    const grad_b = await this.forward(a_t, grad_output);
 
     return [grad_a, grad_b];
   }

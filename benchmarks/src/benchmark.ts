@@ -41,14 +41,14 @@ async function runSingleBenchmark(
 
   // Warmup runs
   for (let i = 0; i < warmupRuns; i++) {
-    await op.forward(null, a, b);
+    await op.forward(a, b);
   }
 
   // Benchmark runs
   const times: number[] = [];
   for (let i = 0; i < benchmarkRuns; i++) {
     const startTime = performance.now();
-    await op.forward(null, a, b);
+    await op.forward(a, b);
     const endTime = performance.now();
     times.push(endTime - startTime);
   }

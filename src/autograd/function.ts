@@ -3,6 +3,7 @@ import { Tensor } from "../tensor/tensor.js";
 
 export abstract class AutogradFunction {
   protected initialized: boolean = false;
+  protected context: Context | null = new Context();
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
@@ -10,9 +11,9 @@ export abstract class AutogradFunction {
     this.initialized = true;
   }
 
-  abstract forward(ctx: Context | null, ...inputs: Tensor[]): Promise<Tensor>;
+  abstract forward(...inputs: Tensor[]): Promise<Tensor>;
 
-  abstract backward(ctx: Context, grad_output: Tensor): Promise<Tensor[]>;
+  abstract backward(grad_output: Tensor): Promise<Tensor[]>;
 
   cleanup(): void {
     // Perform any common cleanup here

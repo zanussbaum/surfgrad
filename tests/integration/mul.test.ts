@@ -5,7 +5,7 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
 }) => {
   await page.goto("http://localhost:8080");
 
-  page.on('console', (msg) => {
+  page.on("console", (msg) => {
     console.log(msg);
   });
 
@@ -24,17 +24,16 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
             true,
           );
           const y = new Tensor(new Float32Array([2.0]), [1], false);
-          const ctx = new Context();
 
           let operation = await Mul.create();
 
           // Forward pass
-          const z = await operation.forward(ctx, x, y);
+          const z = await operation.forward(x, y);
 
           const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 
           // Backward pass
-          const [grad_x, grad_y] = await operation.backward(ctx, loss);
+          const [grad_x, grad_y] = await operation.backward(loss);
 
           return {
             x: x,
@@ -98,17 +97,16 @@ test("Elementwise multiplication forward and backward pass", async ({
             [2, 3],
             true,
           );
-          const ctx = new Context();
 
           let operation = await Mul.create();
 
           // Forward pass
-          const z = await operation.forward(ctx, x, y);
+          const z = await operation.forward(x, y);
 
           const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 
           // Backward pass
-          const [grad_x, grad_y] = await operation.backward(ctx, loss);
+          const [grad_x, grad_y] = await operation.backward(loss);
 
           return {
             x: x,

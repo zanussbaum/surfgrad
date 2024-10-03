@@ -35,10 +35,18 @@ export class Mul extends AutogradFunction {
     this.bindGroupLayout = this.device.createBindGroupLayout({
       entries: [
         { binding: 0, visibility: visibility, buffer: { type: "uniform" } },
-        { binding: 1, visibility: visibility, buffer: { type: "read-only-storage" } },
-        { binding: 2, visibility: visibility, buffer: { type: "read-only-storage" } },
+        {
+          binding: 1,
+          visibility: visibility,
+          buffer: { type: "read-only-storage" },
+        },
+        {
+          binding: 2,
+          visibility: visibility,
+          buffer: { type: "read-only-storage" },
+        },
         { binding: 3, visibility: visibility, buffer: { type: "storage" } },
-      ]
+      ],
     });
 
     const pipelineLayout = this.device.createPipelineLayout({
@@ -53,7 +61,7 @@ export class Mul extends AutogradFunction {
     this.initialized = true;
   }
 
-  async forward(ctx: Context | null, a: Tensor, scalar: Tensor) {
+  async forward(a: Tensor, scalar: Tensor) {
     if (!this.device || !this.pipeline || !this.bindGroupLayout) {
       throw new Error("Mul is not properly initialized");
     }
@@ -145,22 +153,26 @@ export class Mul extends AutogradFunction {
     resultBuffer.destroy();
     stagingBuffer.destroy();
 
-
-    if (ctx) {
-      ctx.save_for_backward(a, scalar);
+    if ((a.requires_grad || scalar.requires_grad) && this.context) {
+      this.context.save_for_backward(a, scalar);
     }
 
     return resultTensor;
   }
 
-  async backward(ctx: Context, grad_output: Tensor): Promise<Tensor[]> {
-    const [a, scalar] = ctx.saved_tensors as [Tensor, Tensor];
+  async backward(grad_output: Tensor): Promise<Tensor[]> {
+    if (!this.context) {
+      throw new Error("Context is null; did you already call Mul.backward?");
+    }
+    const [a, scalar] = this.context.saved_tensors as [Tensor, Tensor];
+
+    this.context = null;
 
     const grad_a = a.requires_grad
-      ? await this.forward(null, grad_output, scalar)
+      ? await this.forward(grad_output, scalar)
       : null;
     const grad_scalar = scalar.requires_grad
-      ? await this.forward(null, grad_output, a)
+      ? await this.forward(grad_output, a)
       : null;
 
     return [grad_a, grad_scalar].filter(
