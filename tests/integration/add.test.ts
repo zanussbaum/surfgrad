@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("Elementwise scalar/broadcasted multiplication forward and backward pass", async ({
+test("Elementwise scalar/broadcasted addition forward and backward pass", async ({
   page,
 }) => {
   await page.goto("http://localhost:8080");
@@ -14,7 +14,7 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
     return new Promise<void>((resolve) => {
       // @ts-ignore
       import("/dist/bundle.js").then((module) => {
-        const { Tensor, Mul } = module;
+        const { Tensor, Add } = module;
 
         // @ts-ignore
         window.runMulTest = async function () {
@@ -25,7 +25,7 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
           );
           const y = new Tensor(new Float32Array([2.0]), [1], false);
 
-          let operation = await Mul.create();
+          let operation = await Add.create();
 
           // Forward pass
           const z = await operation.forward(x, y);
@@ -64,11 +64,9 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
   const zData = new Float32Array(Object.values(result.z.data));
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
 
-  expect(zData).toEqual(new Float32Array([2.0, 4.0, 6.0, 8.0, 10.0, 12.0]));
+  expect(zData).toEqual(new Float32Array([3.0, 4.0, 5.0, 6.0, 7.0, 8.0]));
 
-  expect(gradXData).toEqual(
-    new Float32Array([4.0, 8.0, 12.0, 16.0, 20.0, 24.0]),
-  );
+  expect(gradXData).toEqual(new Float32Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]));
 
   await page.close();
 });
@@ -83,7 +81,7 @@ test("Elementwise multiplication forward and backward pass", async ({
     return new Promise<void>((resolve) => {
       // @ts-ignore
       import("/dist/bundle.js").then((module) => {
-        const { Tensor, Mul } = module;
+        const { Tensor, Add } = module;
 
         // @ts-ignore
         window.runMulTest = async function () {
@@ -98,7 +96,7 @@ test("Elementwise multiplication forward and backward pass", async ({
             true,
           );
 
-          let operation = await Mul.create();
+          let operation = await Add.create();
 
           // Forward pass
           const z = await operation.forward(x, y);
@@ -137,13 +135,11 @@ test("Elementwise multiplication forward and backward pass", async ({
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
   const gradYData = new Float32Array(Object.values(result.grad_y.data));
 
-  expect(zData).toEqual(new Float32Array([2.0, 1.0, 6.0, 2.0, 10.0, 3.0]));
+  expect(zData).toEqual(new Float32Array([3.0, 2.5, 5.0, 4.5, 7.0, 6.5]));
 
-  expect(gradXData).toEqual(new Float32Array([4.0, 0.5, 12.0, 1.0, 20.0, 1.5]));
+  expect(gradXData).toEqual(new Float32Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]));
 
-  expect(gradYData).toEqual(
-    new Float32Array([2.0, 2.0, 18.0, 8.0, 50.0, 18.0]),
-  );
+  expect(gradYData).toEqual(new Float32Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]));
 
   await page.close();
 });

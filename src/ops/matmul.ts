@@ -4,10 +4,6 @@ import { Tensor } from "../tensor/tensor.js";
 import { initWebGPU } from "../webgpu/init.js";
 
 export class MatMul extends AutogradFunction {
-  private device: GPUDevice | null = null;
-  private pipeline: GPUComputePipeline | null = null;
-  private shaderModule: GPUShaderModule | null = null;
-  private bindGroupLayout: GPUBindGroupLayout | null = null;
   /**
    * Performs matrix multiplication on two tensors.
    *

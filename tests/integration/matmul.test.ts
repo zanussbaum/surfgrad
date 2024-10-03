@@ -12,7 +12,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
     return new Promise<void>((resolve) => {
       // @ts-ignore
       import("/dist/bundle.js").then((module) => {
-        const { Tensor, Context, MatMul } = module;
+        const { Tensor, MatMul } = module;
         // @ts-ignore
         window.runMatMulTest = async function () {
           const x = new Tensor(

@@ -1,18 +1,17 @@
 import { AutogradFunction } from "../autograd/function.js";
-import { Context } from "../autograd/context.js";
 import { Tensor } from "../tensor/tensor.js";
 import { initWebGPU } from "../webgpu/init.js";
 
-export class Mul extends AutogradFunction {
+export class Add extends AutogradFunction {
   /**
-   * Performs element-wise multiplication on two tensors.
+   * Performs element-wise addition on two tensors.
    */
   private constructor() {
     super();
   }
 
-  static async create(): Promise<Mul> {
-    const instance = new Mul();
+  static async create(): Promise<Add> {
+    const instance = new Add();
     await instance.initialize();
     return instance;
   }
@@ -22,7 +21,7 @@ export class Mul extends AutogradFunction {
 
     this.device = await initWebGPU();
 
-    const shaderCode = await (await fetch("/src/shaders/mul.wgsl")).text();
+    const shaderCode = await (await fetch("/src/shaders/add.wgsl")).text();
     this.shaderModule = this.device.createShaderModule({ code: shaderCode });
 
     const visibility = GPUShaderStage.COMPUTE;
@@ -58,7 +57,7 @@ export class Mul extends AutogradFunction {
 
   async forward(a: Tensor, scalar: Tensor) {
     if (!this.device || !this.pipeline || !this.bindGroupLayout) {
-      throw new Error("Mul is not properly initialized");
+      throw new Error("Add is not properly initialized");
     }
 
     // Check shapes and broadcast scalar if necessary
@@ -164,10 +163,14 @@ export class Mul extends AutogradFunction {
     this.context = null;
 
     const grad_a = a.requires_grad
-      ? await this.forward(grad_output, scalar)
+      ? new Tensor(new Float32Array(grad_output.data).fill(1), a.shape, true)
       : null;
     const grad_scalar = scalar.requires_grad
-      ? await this.forward(grad_output, a)
+      ? new Tensor(
+          new Float32Array(grad_output.data).fill(1),
+          scalar.shape,
+          true,
+        )
       : null;
 
     return [grad_a, grad_scalar].filter(

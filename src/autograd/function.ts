@@ -4,6 +4,10 @@ import { Tensor } from "../tensor/tensor.js";
 export abstract class AutogradFunction {
   protected initialized: boolean = false;
   protected context: Context | null = new Context();
+  protected device: GPUDevice | null = null;
+  protected pipeline: GPUComputePipeline | null = null;
+  protected shaderModule: GPUShaderModule | null = null;
+  protected bindGroupLayout: GPUBindGroupLayout | null = null;
 
   async initialize(): Promise<void> {
     if (this.initialized) return;

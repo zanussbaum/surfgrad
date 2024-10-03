@@ -1,4 +1,4 @@
-import { MatMul, Mul, Tensor } from "surfgrad";
+import { MatMul, Mul, Tensor, Add } from "surfgrad";
 import { AutogradFunction } from "../../dist/autograd/function";
 
 interface BenchmarkResult {
@@ -28,12 +28,16 @@ async function runSingleBenchmark(
 
   // Create op
   let op: AutogradFunction;
+  console.log(`Running ${shader} with size ${size}`);
   switch (shader) {
     case "matmul":
       op = await MatMul.create();
       break;
     case "mul":
       op = await Mul.create();
+      break;
+    case "add":
+      op = await Add.create();
       break;
     default:
       throw new Error(`Unknown shader: ${shader}`);
