@@ -4,6 +4,7 @@ import { Mul } from "./mul.js";
 
 export class Log extends UnaryOp {
   protected readonly shaderPath: string = "/src/shaders/Log.wgsl";
+
   async backward(grad_output: Tensor): Promise<Tensor[]> {
     if (!this.context) {
       throw new Error("Context is null; did you already call log.backward?");
@@ -16,7 +17,11 @@ export class Log extends UnaryOp {
       inverseArray[i] = 1 / (input.data[i] * Math.log(2));
     }
 
-    const grad = new Tensor(inverseArray, input.shape, input.requires_grad);
+    const mulOp = await Mul.create();
+    const [grad] = await mulOp.forward(
+      new Tensor(inverseArray, input.shape, input.requires_grad),
+      grad_output,
+    );
 
     this.context = null;
 

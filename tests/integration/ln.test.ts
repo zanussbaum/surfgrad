@@ -27,7 +27,11 @@ test("Elementwise ln forward and backward pass", async ({ page }) => {
           // Forward pass
           const [z, _] = await operation.forward(x);
 
-          const loss = new Tensor(new Float32Array(z.data), z.shape, true);
+          const loss = new Tensor(
+            new Float32Array(z.data).fill(1),
+            z.shape,
+            true,
+          );
 
           // Backward pass
           const [grad_x] = await operation.backward(loss);

@@ -6,5 +6,6 @@ import { Add } from "./ops/add.js";
 import { Exp } from "./ops/exp.js";
 import { Log } from "./ops/log.js";
 import { Ln } from "./ops/ln.js";
+import { ReLU } from "./ops/relu.js";
 
-export { Tensor, Context, MatMul, Mul, Add, Exp, Log, Ln };
+export { Tensor, Context, MatMul, Mul, Add, Exp, Log, Ln, ReLU };

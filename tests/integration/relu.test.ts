@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("Elementwise exp2 forward and backward pass", async ({ page }) => {
+test("Elementwise log2 forward and backward pass", async ({ page }) => {
   await page.goto("http://localhost:8080");
 
   page.on("console", (msg) => {
@@ -12,26 +12,22 @@ test("Elementwise exp2 forward and backward pass", async ({ page }) => {
     return new Promise<void>((resolve) => {
       // @ts-ignore
       import("/dist/bundle.js").then((module) => {
-        const { Tensor, Exp } = module;
+        const { Tensor, ReLU } = module;
 
         // @ts-ignore
         window.runMulTest = async function () {
           const x = new Tensor(
-            new Float32Array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
+            new Float32Array([1.0, -2.0, 3.0, -4.0, 5.0, 6.0]),
             [2, 3],
             true,
           );
 
-          let operation = await Exp.create();
+          let operation = await ReLU.create();
 
           // Forward pass
           const [z, _] = await operation.forward(x);
 
-          const loss = new Tensor(
-            new Float32Array(z.data.length).fill(1),
-            z.shape,
-            true,
-          );
+          const loss = new Tensor(new Float32Array(z.data), z.shape, true);
 
           // Backward pass
           const [grad_x] = await operation.backward(loss);
@@ -60,14 +56,9 @@ test("Elementwise exp2 forward and backward pass", async ({ page }) => {
   const zData = new Float32Array(Object.values(result.z.data));
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
 
-  expect(zData).toEqual(new Float32Array([2, 4, 8, 16, 32, 64]));
+  expect(zData).toEqual(new Float32Array([1.0, 0, 3.0, 0, 5.0, 6.0]));
 
-  expect(gradXData).toEqual(
-    new Float32Array([
-      1.3862943649291992, 2.7725887298583984, 5.545177459716797,
-      11.090354919433594, 22.180709838867188, 44.361419677734375,
-    ]),
-  );
+  expect(gradXData).toEqual(new Float32Array([1.0, 0, 3.0, 0, 5.0, 6.0]));
 
   await page.close();
 });

@@ -14,7 +14,7 @@ export class Ln extends UnaryOp {
     // The gradient of ln(x) is 1 / x
     const inverseArray = new Float32Array(input.data.length);
     for (let i = 0; i < input.data.length; i++) {
-      inverseArray[i] = 1 / input.data[i];
+      inverseArray[i] = grad_output.data[i] / input.data[i];
     }
 
     const grad_inverse = new Tensor(

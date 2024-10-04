@@ -1,6 +1,5 @@
 import { Tensor } from "../tensor/tensor.js";
 import { UnaryOp } from "../autograd/function.js";
-import { Ln } from "./ln.js";
 import { Mul } from "./mul.js";
 
 export class Exp extends UnaryOp {
@@ -15,12 +14,15 @@ export class Exp extends UnaryOp {
     this.context = null;
 
     // The gradient of 2^x is 2^x * ln(2)
+    // TODO: make this more efficient by saving the output instead of recalculating
     const [exp_x] = await this.forward(input);
     const log2 = new Tensor(new Float32Array([Math.log(2)]), [1], false);
     const mulOp = await Mul.create();
 
     const [exp_x_mul_log_x] = await mulOp.forward(exp_x, log2);
 
-    return [exp_x_mul_log_x];
+    const [grad] = await mulOp.forward(grad_output, exp_x_mul_log_x);
+
+    return [grad];
   }
 }
