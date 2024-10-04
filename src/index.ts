@@ -5,5 +5,6 @@ import { Mul } from "./ops/mul.js";
 import { Add } from "./ops/add.js";
 import { Exp } from "./ops/exp.js";
 import { Log } from "./ops/log.js";
+import { Ln } from "./ops/ln.js";
 
-export { Tensor, Context, MatMul, Mul, Add, Exp, Log };
+export { Tensor, Context, MatMul, Mul, Add, Exp, Log, Ln };

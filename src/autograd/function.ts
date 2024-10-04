@@ -91,11 +91,7 @@ export abstract class BinaryOp extends AutogradFunction {
       size: 3 * Uint32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
-    this.device.queue.writeBuffer(
-      uniformBuffer,
-      0,
-      shapes,
-    );
+    this.device.queue.writeBuffer(uniformBuffer, 0, shapes);
 
     const bufferA = this.device.createBuffer({
       size: a.data.length * Float32Array.BYTES_PER_ELEMENT,

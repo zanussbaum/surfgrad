@@ -1,6 +1,5 @@
 import { Tensor } from "../tensor/tensor.js";
 import { UnaryOp } from "../autograd/function.js";
-import { Exp } from "./exp.js";
 import { Mul } from "./mul.js";
 
 export class Log extends UnaryOp {
@@ -14,7 +13,7 @@ export class Log extends UnaryOp {
     const inverseArray = new Float32Array(input.data.length);
 
     for (let i = 0; i < input.data.length; i++) {
-      inverseArray[i] = 1 / input.data[i];
+      inverseArray[i] = 1 / (input.data[i] * Math.log(2));
     }
 
     const grad = new Tensor(inverseArray, input.shape, input.requires_grad);

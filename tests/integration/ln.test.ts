@@ -56,11 +56,18 @@ test("Elementwise ln forward and backward pass", async ({ page }) => {
   const zData = new Float32Array(Object.values(result.z.data));
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
 
-  expect(zData).toEqual(new Float32Array([0.0000, 0.6931471824645996, 1.0986121892929077, 1.3862943649291992, 1.6094378232955933, 1.7917593717575073]));
+  expect(zData).toEqual(
+    new Float32Array([
+      0.0, 0.6931471824645996, 1.0986121892929077, 1.3862943649291992,
+      1.6094378232955933, 1.7917593717575073,
+    ]),
+  );
 
   expect(gradXData).toEqual(
-    new Float32Array([1.0000, 0.5000, 0.3333333432674408, 0.2500, 0.2000, 0.1666666716337204])
-  )
+    new Float32Array([
+      1.0, 0.5, 0.3333333432674408, 0.25, 0.2, 0.1666666716337204,
+    ]),
+  );
 
   await page.close();
 });

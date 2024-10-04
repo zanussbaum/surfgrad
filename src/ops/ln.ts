@@ -17,7 +17,11 @@ export class Ln extends UnaryOp {
       inverseArray[i] = 1 / input.data[i];
     }
 
-    const grad_inverse = new Tensor(inverseArray, input.shape, input.requires_grad);
+    const grad_inverse = new Tensor(
+      inverseArray,
+      input.shape,
+      input.requires_grad,
+    );
 
     return [grad_inverse];
   }
