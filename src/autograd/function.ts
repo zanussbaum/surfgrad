@@ -86,35 +86,36 @@ export abstract class BinaryOp extends AutogradFunction {
     }
 
     [a, b] = this.validateShapes(a, b);
-
+    const shapes = new Uint32Array([a.shape[0], a.shape[1], b.shape[1]]);
     const uniformBuffer = this.device.createBuffer({
-      size: 3 * 4,
+      size: 3 * Uint32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
-
     this.device.queue.writeBuffer(
       uniformBuffer,
       0,
-      new Uint32Array([a.shape[0], a.shape[1], b.shape[1]]),
+      shapes,
     );
 
     const bufferA = this.device.createBuffer({
-      size: a.data.byteLength,
+      size: a.data.length * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      label: "bufferA",
     });
+    this.device.queue.writeBuffer(bufferA, 0, a.data);
 
     const bufferB = this.device.createBuffer({
-      size: b.data.byteLength,
+      size: b.data.length * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      label: "bufferB",
     });
+    this.device.queue.writeBuffer(bufferB, 0, b.data);
 
     const resultBuffer = this.device.createBuffer({
       size: a.shape[0] * b.shape[1] * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+      label: "resultBuffer",
     });
-
-    this.device.queue.writeBuffer(bufferA, 0, a.data);
-    this.device.queue.writeBuffer(bufferB, 0, b.data);
 
     const bindGroup = this.device.createBindGroup({
       layout: this.bindGroupLayout,
@@ -138,6 +139,7 @@ export abstract class BinaryOp extends AutogradFunction {
     const stagingBuffer = this.device.createBuffer({
       size: a.shape[0] * b.shape[1] * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      label: "stagingBuffer",
     });
 
     encoder.copyBufferToBuffer(
@@ -226,6 +228,7 @@ export abstract class UnaryOp extends AutogradFunction {
     const uniformBuffer = this.device.createBuffer({
       size: 2 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      label: "uniformBuffer",
     });
 
     this.device.queue.writeBuffer(
@@ -237,11 +240,13 @@ export abstract class UnaryOp extends AutogradFunction {
     const bufferA = this.device.createBuffer({
       size: a.data.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      label: "bufferA",
     });
 
     const resultBuffer = this.device.createBuffer({
       size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+      label: "resultBuffer",
     });
 
     this.device.queue.writeBuffer(bufferA, 0, a.data);
@@ -267,6 +272,7 @@ export abstract class UnaryOp extends AutogradFunction {
     const stagingBuffer = this.device.createBuffer({
       size: a.shape[0] * a.shape[1] * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      label: "stagingBuffer",
     });
 
     encoder.copyBufferToBuffer(
