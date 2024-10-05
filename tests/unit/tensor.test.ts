@@ -83,5 +83,23 @@ describe("Tensor", () => {
       expect(transposed.shape).toEqual([1, 3]);
       expect(Array.from(transposed.data)).toEqual([1, 2, 3]);
     });
+    it("should create ones_like tensor", () => {
+      const data = new Float32Array([1, 2, 3]);
+      const shape = [3, 1];
+      const tensor = new Tensor(data, shape);
+
+      const ones = Tensor.onesLike(tensor);
+
+      expect(ones.data).toEqual(new Float32Array([1, 1, 1]));
+    });
+    it("should create zeros_like tensor", () => {
+      const data = new Float32Array([1, 2, 3]);
+      const shape = [3, 1];
+      const tensor = new Tensor(data, shape);
+
+      expect(Tensor.zerosLike(tensor).data).toEqual(
+        new Float32Array([0, 0, 0]),
+      );
+    });
   });
 });

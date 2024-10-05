@@ -7,7 +7,7 @@ export class Ln extends UnaryOp {
     if (!this.context) {
       throw new Error("Context is null; did you already call ln.backward?");
     }
-    const [input] = this.context.saved_tensors;
+    const [input] = this.context.inputs;
 
     this.context = null;
 

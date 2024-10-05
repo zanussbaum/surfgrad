@@ -9,13 +9,9 @@ export class Exp extends UnaryOp {
     if (!this.context) {
       throw new Error("Context is null; did you already call Exp.backward?");
     }
-    const [input] = this.context.saved_tensors;
 
-    this.context = null;
+    const exp_x = this.context.output;
 
-    // The gradient of 2^x is 2^x * ln(2)
-    // TODO: make this more efficient by saving the output instead of recalculating
-    const [exp_x] = await this.forward(input);
     const log2 = new Tensor(new Float32Array([Math.log(2)]), [1], false);
     const mulOp = await Mul.create();
 

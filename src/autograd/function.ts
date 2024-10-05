@@ -1,11 +1,12 @@
-import { Context } from "./context.js";
+// import { AutogradContext } from "./context.js";
 import { Tensor } from "../tensor/tensor.js";
+import { Node } from "./node.js";
 import { initWebGPU } from "../webgpu/init.js";
 import { timeAndExecute } from "../util/time.js";
 
 export abstract class AutogradFunction {
   protected initialized: boolean = false;
-  protected context: Context | null = new Context();
+  protected context: Node | null = null;
   protected device: GPUDevice | null = null;
   protected pipeline: GPUComputePipeline | null = null;
   protected shaderModule: GPUShaderModule | null = null;
@@ -26,6 +27,19 @@ export abstract class AutogradFunction {
     const instance = new this();
     await instance.initialize();
     return instance;
+  }
+
+  async setAutogradContext(inputs: Tensor[], output: Tensor): Promise<void> {
+    const node = new Node(this, inputs, output);
+    output.gradFn = node;
+
+    // Set up next_functions for backpropagation
+    for (let i = 0; i < inputs.length; i++) {
+      if (inputs[i].requires_grad) {
+        node.next_functions.push([inputs[i].gradFn!, i]);
+      }
+    }
+    this.context = node;
   }
 
   abstract forward(...inputs: Tensor[]): Promise<[Tensor, number]>;
@@ -157,27 +171,14 @@ export abstract class BinaryOp extends AutogradFunction {
 
     const resultTensor = new Tensor(resultCopy, [a.shape[0], b.shape[1]], true);
 
-    if ((a.requires_grad || b.requires_grad) && this.context) {
-      this.context.save_for_backward(a, b);
-    }
-
     // clean up buffers
     bufferA.destroy();
     bufferB.destroy();
     uniformBuffer.destroy();
-    resultBuffer.destroy();
-
+    if (a.requires_grad || b.requires_grad) {
+      this.setAutogradContext([a, b], resultTensor);
+    }
     return [resultTensor, executionTime];
-  }
-
-  abstract backward(grad_output: Tensor): Promise<Tensor[]>;
-
-  cleanup(): void {
-    super.cleanup();
-    this.device = null;
-    this.pipeline = null;
-    this.shaderModule = null;
-    this.initialized = false;
   }
 }
 
@@ -289,9 +290,8 @@ export abstract class UnaryOp extends AutogradFunction {
     stagingBuffer.unmap();
 
     const resultTensor = new Tensor(resultCopy, [a.shape[0], a.shape[1]], true);
-
-    if (a.requires_grad && this.context) {
-      this.context.save_for_backward(a);
+    if (a.requires_grad) {
+      this.setAutogradContext([a], resultTensor);
     }
 
     // clean up buffers

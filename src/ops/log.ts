@@ -9,7 +9,7 @@ export class Log extends UnaryOp {
     if (!this.context) {
       throw new Error("Context is null; did you already call log.backward?");
     }
-    const [input] = this.context.saved_tensors;
+    const [input] = this.context.inputs;
 
     const inverseArray = new Float32Array(input.data.length);
 

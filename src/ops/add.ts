@@ -22,9 +22,7 @@ export class Add extends BinaryOp {
     if (!this.context) {
       throw new Error("Context is null; did you already call Add.backward?");
     }
-    const [a, b] = this.context.saved_tensors;
-
-    this.context = null;
+    const [a, b] = this.context.inputs;
 
     const grad_a = a.requires_grad
       ? new Tensor(new Float32Array(grad_output.data).fill(1), a.shape, true)

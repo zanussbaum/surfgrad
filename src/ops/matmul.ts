@@ -18,7 +18,7 @@ export class MatMul extends BinaryOp {
     if (!this.context) {
       throw new Error("Context is null; did you already call MatMul.backward?");
     }
-    const [a, b] = this.context.saved_tensors;
+    const [a, b] = this.context.inputs;
 
     this.context = null;
 

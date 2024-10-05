@@ -8,7 +8,7 @@ export class ReLU extends UnaryOp {
     if (!this.context) {
       throw new Error("Context is null; did you already call Exp.backward?");
     }
-    const [input] = this.context.saved_tensors;
+    const [input] = this.context.inputs;
 
     this.context = null;
     // gradient of relu is 1 if x > 0, 0 otherwise
