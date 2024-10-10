@@ -12,7 +12,7 @@ test("Elementwise exp2 forward and backward pass", async ({ page }) => {
     return new Promise<void>((resolve) => {
       // @ts-ignore
       import("/dist/bundle.js").then((module) => {
-        const { Tensor, Exp2 } = module;
+        const { Tensor } = module;
 
         // @ts-ignore
         window.runMulTest = async function () {
@@ -22,25 +22,14 @@ test("Elementwise exp2 forward and backward pass", async ({ page }) => {
             true,
           );
 
-          let operation = await Exp2.create();
-
           // Forward pass
-          const [z, _] = await operation.forward(x);
-
-          const loss = new Tensor(
-            new Float32Array(z.data.length).fill(1),
-            z.shape,
-            true,
-          );
-
-          // Backward pass
-          const [grad_x] = await operation.backward(loss);
+          const [z, _] = await x.exp2();
+          await z.backward();
 
           return {
             x: x,
             z: z,
-            loss: loss,
-            grad_x: grad_x,
+            grad_x: x.grad,
           };
         };
         resolve();

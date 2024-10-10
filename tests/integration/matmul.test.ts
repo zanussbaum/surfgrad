@@ -12,7 +12,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
     return new Promise<void>((resolve) => {
       // @ts-ignore
       import("/dist/bundle.js").then((module) => {
-        const { Tensor, MatMul } = module;
+        const { Tensor } = module;
         // @ts-ignore
         window.runMatMulTest = async function () {
           const x = new Tensor(
@@ -26,10 +26,8 @@ test("MatMul forward and backward pass", async ({ page }) => {
             true,
           );
 
-          let operation = await MatMul.create();
-
           // Forward pass
-          const [y, _] = await operation.forward(x, w);
+          const [y, _] = await x.matmul(w);
 
           const loss = new Tensor(
             new Float32Array(y.data.length).fill(1),
@@ -37,16 +35,15 @@ test("MatMul forward and backward pass", async ({ page }) => {
             true,
           );
 
-          // Backward pass
-          const [grad_x, grad_w] = await operation.backward(loss);
+          await y.backward();
 
           return {
             x: x,
             w: w,
             y: y,
             loss: loss,
-            grad_x: grad_x,
-            grad_w: grad_w,
+            grad_x: x.grad,
+            grad_w: w.grad,
           };
         };
         resolve();
@@ -65,9 +62,9 @@ test("MatMul forward and backward pass", async ({ page }) => {
   expect(result.grad_x.shape).toEqual([3, 2]);
   expect(result.grad_w.shape).toEqual([2, 2]);
 
-  const yData = new Float32Array(Object.values(result.y.data));
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
   const gradWData = new Float32Array(Object.values(result.grad_w.data));
+  const yData = new Float32Array(Object.values(result.y.data));
 
   expect(yData).toEqual(
     new Float32Array([
