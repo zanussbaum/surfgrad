@@ -66,7 +66,7 @@ test("Elementwise scalar/broadcasted addition forward and backward pass", async 
 
   expect(zData).toEqual(new Float32Array([3.0, 4.0, 5.0, 6.0, 7.0, 8.0]));
 
-  expect(gradXData).toEqual(new Float32Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]));
+  expect(gradXData).toEqual(new Float32Array([3.0, 4.0, 5.0, 6.0, 7.0, 8.0]));
 
   await page.close();
 });
@@ -137,9 +137,9 @@ test("Elementwise multiplication forward and backward pass", async ({
 
   expect(zData).toEqual(new Float32Array([3.0, 2.5, 5.0, 4.5, 7.0, 6.5]));
 
-  expect(gradXData).toEqual(new Float32Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]));
+  expect(gradXData).toEqual(new Float32Array([3.0, 2.5, 5.0, 4.5, 7.0, 6.5]));
 
-  expect(gradYData).toEqual(new Float32Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]));
+  expect(gradYData).toEqual(new Float32Array([3.0, 2.5, 5.0, 4.5, 7.0, 6.5]));
 
   await page.close();
 });

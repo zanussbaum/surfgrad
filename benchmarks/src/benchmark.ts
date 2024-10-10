@@ -1,4 +1,4 @@
-import { MatMul, Mul, Tensor, Add, Exp, Log } from "surfgrad";
+import { MatMul, Mul, Tensor, Add, Exp, Log2 } from "surfgrad";
 import { AutogradFunction } from "../../dist/autograd/function";
 
 interface BenchmarkResult {
@@ -69,7 +69,7 @@ async function runSingleBenchmark(
       op = await Exp.create();
       break;
     case "log":
-      op = await Log.create();
+      op = await Log2.create();
       break;
     default:
       throw new Error(`Unknown shader: ${shader}`);

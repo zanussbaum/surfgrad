@@ -4,6 +4,7 @@ export * from "./ops/matmul.js";
 export * from "./ops/mul.js";
 export * from "./ops/add.js";
 export * from "./ops/exp.js";
-export * from "./ops/log.js";
+export * from "./ops/exp2.js";
+export * from "./ops/log2.js";
 export * from "./ops/ln.js";
 export * from "./ops/relu.js";

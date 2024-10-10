@@ -8,7 +8,7 @@ export async function timeAndExecute(
 
   await buffer.mapAsync(GPUMapMode.READ);
   const resultArray = new Float32Array(buffer.getMappedRange());
-  const totalTime = window.performance.now() - start;
+  const totalTime = performance.now() - start;
 
   return [resultArray, totalTime];
 }

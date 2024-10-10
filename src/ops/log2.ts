@@ -2,14 +2,11 @@ import { Tensor } from "../tensor/tensor.js";
 import { UnaryOp } from "../autograd/function.js";
 import { Mul } from "./mul.js";
 
-export class Log extends UnaryOp {
-  protected readonly shaderPath: string = "/src/shaders/Log.wgsl";
+export class Log2 extends UnaryOp {
+  protected readonly shaderPath: string = "/src/shaders/log2.wgsl";
 
   async backward(grad_output: Tensor): Promise<Tensor[]> {
-    if (!this.context) {
-      throw new Error("Context is null; did you already call log.backward?");
-    }
-    const [input] = this.context.inputs;
+    const [input] = this.inputs;
 
     const inverseArray = new Float32Array(input.data.length);
 
@@ -19,11 +16,11 @@ export class Log extends UnaryOp {
 
     const mulOp = await Mul.create();
     const [grad] = await mulOp.forward(
-      new Tensor(inverseArray, input.shape, input.requires_grad),
+      new Tensor(inverseArray, input.shape, false),
       grad_output,
     );
 
-    this.context = null;
+    await input.setGrad(grad);
 
     return [grad];
   }

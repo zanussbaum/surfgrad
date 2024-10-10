@@ -60,14 +60,15 @@ test("Elementwise exp2 forward and backward pass", async ({ page }) => {
   const zData = new Float32Array(Object.values(result.z.data));
   const gradXData = new Float32Array(Object.values(result.grad_x.data));
 
-  expect(zData).toEqual(new Float32Array([2, 4, 8, 16, 32, 64]));
+  // dy/dx of exp(x) is exp(x)
+  const out = new Float32Array([
+    2.7182817459106445, 7.3890557289123535, 20.085535049438477,
+    54.598148345947266, 148.4131622314453, 403.4286804199219,
+  ]);
 
-  expect(gradXData).toEqual(
-    new Float32Array([
-      1.3862943649291992, 2.7725887298583984, 5.545177459716797,
-      11.090354919433594, 22.180709838867188, 44.361419677734375,
-    ]),
-  );
+  expect(zData).toEqual(out);
+
+  expect(gradXData).toEqual(out);
 
   await page.close();
 });

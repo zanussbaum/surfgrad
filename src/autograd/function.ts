@@ -1,6 +1,5 @@
 // import { AutogradContext } from "./context.js";
 import { Tensor } from "../tensor/tensor.js";
-import { Node } from "./node.js";
 import { initWebGPU } from "../webgpu/init.js";
 import { timeAndExecute } from "../util/time.js";
 
@@ -12,6 +11,10 @@ export abstract class AutogradFunction {
   protected shaderModule: GPUShaderModule | null = null;
   protected bindGroupLayout: GPUBindGroupLayout | null = null;
   protected abstract readonly shaderPath: string;
+  public parents: [Tensor, number][] = [];
+  protected inputs: Tensor[] = [];
+  protected output: Tensor | null = null;
+  protected requiresGrad: boolean[] = [];
 
   constructor() {}
 
@@ -30,16 +33,55 @@ export abstract class AutogradFunction {
   }
 
   async setAutogradContext(inputs: Tensor[], output: Tensor): Promise<void> {
-    const node = new Node(this, inputs, output);
-    output.gradFn = node;
-
+    console.log(
+      "binding output.data",
+      output.data.toString(),
+      "to inputs",
+      inputs
+        .filter((input) => input.requires_grad)
+        .map((input) => input.data.toString()),
+    );
+    // TODO why is exp and ln not getting bound?
     // Set up next_functions for backpropagation
+    const parents: [Tensor, number][] = [];
     for (let i = 0; i < inputs.length; i++) {
+      console.log(
+        "input",
+        inputs[i].data.toString(),
+        "requires_grad",
+        inputs[i].requires_grad,
+      );
       if (inputs[i].requires_grad) {
-        node.next_functions.push([inputs[i].gradFn!, i]);
+        console.log(
+          "setting op",
+          this,
+          "as next function for input",
+          i,
+          "gradFn",
+          inputs[i].context,
+        );
+        parents.push([inputs[i], i]);
       }
     }
-    this.context = node;
+
+    this.parents = parents;
+    this.requiresGrad = inputs.map((input) => input.requires_grad);
+
+    this.inputs = inputs;
+    this.output = output;
+
+    // set requires_grad to false so values aren't saved when forward is called in backward()
+    for (let i = 0; i < inputs.length; i++) {
+      inputs[i].requires_grad = false;
+    }
+    console.log(
+      "setting context for output",
+      output.data.toString(),
+      "to",
+      this,
+    );
+    console.log("\n");
+    output.context = this;
   }
 
   abstract forward(...inputs: Tensor[]): Promise<[Tensor, number]>;
@@ -92,14 +134,15 @@ export abstract class BinaryOp extends AutogradFunction {
     this.initialized = true;
   }
 
-  abstract validateShapes(a: Tensor, b: Tensor): [Tensor, Tensor];
+  abstract validateShapes(a: Tensor, b: Tensor): Tensor;
 
   async forward(a: Tensor, b: Tensor): Promise<[Tensor, number]> {
     if (!this.device || !this.pipeline || !this.bindGroupLayout) {
       throw new Error(`${this.constructor.name} is not properly initialized`);
     }
 
-    [a, b] = this.validateShapes(a, b);
+    b = this.validateShapes(a, b);
+
     const shapes = new Uint32Array([a.shape[0], a.shape[1], b.shape[1]]);
     const uniformBuffer = this.device.createBuffer({
       size: 3 * Uint32Array.BYTES_PER_ELEMENT,
@@ -291,14 +334,13 @@ export abstract class UnaryOp extends AutogradFunction {
 
     const resultTensor = new Tensor(resultCopy, [a.shape[0], a.shape[1]], true);
     if (a.requires_grad) {
-      this.setAutogradContext([a], resultTensor);
+      await this.setAutogradContext([a], resultTensor);
     }
 
     // clean up buffers
     bufferA.destroy();
     uniformBuffer.destroy();
     resultBuffer.destroy();
-
     return [resultTensor, executionTime];
   }
 

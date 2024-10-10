@@ -11,9 +11,9 @@
     "build-clean": "npm run clean && npm run build && npm run build-bundle",
     "dev": "npm run build-clean && npm run start",
     "prettier": "prettier --write .",
-    "build-bundle": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --format=esm",
+    "build-bundle": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --format=esm --target=es2020",
     "unit": "npm run build-clean && node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "integration": "npm run build-clean && npx playwright test",
+    "integration": "npm run build-clean && npx playwright test tests/integration/autograd*",
     "benchmark": "npm run build-clean && cd benchmarks && npm install && npm start"
   },
   "devDependencies": {

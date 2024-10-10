@@ -1,18 +1,18 @@
 import { Add } from "../ops/add.js";
-import { Node } from "../autograd/node.js";
+import { AutogradFunction } from "../autograd/function.js";
 
 export class Tensor {
   data: Float32Array;
   shape: number[];
   requires_grad: boolean;
-  gradFn: Node | null = null;
+  context: AutogradFunction | null = null;
   grad: Tensor | null = null;
 
   constructor(
     data: Float32Array,
     shape: number[],
     requires_grad = false,
-    gradFn: Node | null = null,
+    context: AutogradFunction | null = null,
   ) {
     // if number of elements in data and shape are different, throw error
     if (data.length !== shape.reduce((a, b) => a * b)) {
@@ -27,7 +27,7 @@ export class Tensor {
     this.data = data;
     this.shape = shape;
     this.requires_grad = requires_grad;
-    this.gradFn = gradFn;
+    this.context = context;
   }
 
   static full(shape: number[], value: number, requires_grad = false) {
@@ -63,6 +63,23 @@ export class Tensor {
     return new Tensor(transposedData, [cols, rows], this.requires_grad);
   }
 
+  async setGrad(grad: Tensor) {
+    console.log(
+      "setting grad",
+      grad.data.toString(),
+      "for",
+      this.context,
+      "data",
+      this.data.toString(),
+    );
+    if (!this.grad) {
+      this.grad = grad;
+    } else {
+      const [grad] = await this.add(this.grad);
+      this.grad = grad;
+    }
+  }
+
   async backward() {
     if (!this.requires_grad) {
       throw new Error(
@@ -71,29 +88,48 @@ export class Tensor {
     }
 
     // Start with gradient 1.0 for scalar outputs
-    let grad = Tensor.onesLike(this);
-    await this.backwardStep(grad);
+    let curr_grad = Tensor.onesLike(this);
+    if (!this.grad) {
+      await this.setGrad(curr_grad);
+    }
+
+    // Traverse graph in reverse topological order
+    const topo_order = this.build_topo_order().reverse();
+    for (const tensorNode of topo_order) {
+      const autograd = tensorNode.context;
+      if (autograd) {
+        await autograd.backward(tensorNode.grad!);
+      }
+    }
   }
 
-  private async backwardStep(grad: Tensor) {
-    if (!this.gradFn) {
-      // This is a leaf tensor
-      if (this.requires_grad) {
-        if (!this.grad) {
-          this.grad = grad;
-        } else {
-          const [grad] = await this.add(this.grad);
-          this.grad = grad;
-        }
+  private build_topo_order(): Tensor[] {
+    const topo_order: Tensor[] = [];
+    const visited = new Set<Tensor>();
+
+    const dfs = (node: Tensor) => {
+      if (visited.has(node)) return;
+      visited.add(node);
+      console.log("node", node.data.toString());
+      console.log("node.op", node.context);
+      console.log(
+        "parents",
+        node.context?.parents.map(([t]) => t.data.toString()),
+      );
+      console.log("\n");
+      for (const [parent] of node.context?.parents || []) {
+        dfs(parent);
       }
-      return;
-    }
+      topo_order.push(node);
+    };
 
-    const gradInputs = await this.gradFn.op.backward(grad);
+    dfs(this);
+    // TODO this is wrong!!
+    console.log(
+      "topo_order",
+      topo_order.map((t) => t.context),
+    );
 
-    for (let i = 0; i < this.gradFn.next_functions.length; i++) {
-      const [nextFn, inputIdx] = this.gradFn.next_functions[i];
-      await nextFn.output.backwardStep(gradInputs[inputIdx]);
-    }
+    return topo_order;
   }
 }
