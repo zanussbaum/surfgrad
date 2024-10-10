@@ -9,17 +9,16 @@ struct Dimensions {
 @group(0) @binding(2) var<storage, read> b: array<f32>;
 @group(0) @binding(3) var<storage, read_write> result: array<f32>;
 
-@compute @workgroup_size(256)
+@compute @workgroup_size(2, 2)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-  let index = global_id.x;
-  let row = index / dimensions.N;
-  let col = index % dimensions.N;
+  let row = global_id.x;
+  let col = global_id.y;
 
-  if (index < dimensions.M * dimensions.N) {
+  if (row < dimensions.M && col < dimensions.N) {
     var sum : f32 = 0.0;
     for (var i: u32 = 0u; i < dimensions.K; i = i + 1u) {
       sum = sum + a[row * dimensions.K + i] * b[i * dimensions.N + col];
     }
-    result[index] = sum;
+    result[row * dimensions.N + col] = sum;
   }
 }
