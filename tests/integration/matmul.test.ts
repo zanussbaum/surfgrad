@@ -176,12 +176,12 @@ test("Random MatMul equivalence test", async ({ page }) => {
     });
   });
 
-  const sizes = [2, 4, 8, 16, 32, 64, 128]
+  const sizes = [2, 4, 8, 16, 32, 64, 128];
   // for larger matrices, we lose precision
   const digitsOfPrecision = [5, 5, 5, 5, 5, 4, 4];
   for (let i = 0; i < sizes.length; i++) {
     const size = sizes[i];
-    const digits = digitsOfPrecision[i]; 
+    const digits = digitsOfPrecision[i];
     // Run the test function in the browser context
     const result = await page.evaluate(
       (size) => window.runRandomMatMulTest(size),
@@ -190,17 +190,16 @@ test("Random MatMul equivalence test", async ({ page }) => {
 
     const webgpuData = new Float32Array(Object.values(result.webgpuResult));
     const naiveData = new Float32Array(result.naiveResult);
-    // console.log("naive", naiveData.toString());
-    // console.log("webgpu", webgpuData.toString());
-
-    console.log(`Testing ${size}x${size} matrix multiplication`);
 
     // Check if shapes match
     expect(webgpuData.length).toBe(naiveData.length);
 
     // Check if values are close (allowing for small floating-point differences)
     for (let i = 0; i < webgpuData.length; i++) {
-      expect(webgpuData[i], {message: `at index ${i}`}).toBeCloseTo(naiveData[i], digits);
+      expect(webgpuData[i], { message: `at index ${i}` }).toBeCloseTo(
+        naiveData[i],
+        digits,
+      );
     }
   }
 
