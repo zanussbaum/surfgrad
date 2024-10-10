@@ -19,27 +19,17 @@ test("Autograd graph creation test", async ({ page }) => {
           const x = new Tensor(new Float32Array([2.0]), [1, 1], true);
           const y = new Tensor(new Float32Array([3.0]), [1, 1], true);
 
-          let mul = await Mul.create();
-          let exp = await Exp.create();
-          let add = await Add.create();
-          let ln = await Ln.create();
-          let relu = await ReLU.create();
-          let ln2 = await Ln.create();
-          let add2 = await Add.create();
-
-          let [mulResult] = await mul.forward(x, y);
-          let [expResult] = await exp.forward(mulResult);
-          let [addResult] = await add.forward(
-            expResult,
+          let [mulResult] = await x.mul(y);
+          let [expResult] = await mulResult.exp();
+          let [addResult] = await expResult.add(
             new Tensor(new Float32Array([1.0]), [1], false),
           );
-          let [lnResult] = await ln.forward(addResult);
-          let [reluResult] = await relu.forward(lnResult);
-          let [addtwoResult] = await add2.forward(
-            reluResult,
+          let [lnResult] = await addResult.ln();
+          let [reluResult] = await lnResult.relu();
+          let [addtwoResult] = await reluResult.add(
             new Tensor(new Float32Array([2.0]), [1], false),
           );
-          let [output] = await ln2.forward(addtwoResult);
+          let [output] = await addtwoResult.ln();
 
           // populate gradient
           await output.backward();

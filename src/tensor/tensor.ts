@@ -1,4 +1,12 @@
 import { Add } from "../ops/add.js";
+import { MatMul } from "../ops/matmul.js";
+import { Mul } from "../ops/mul.js";
+import { Exp } from "../ops/exp.js";
+import { Log2 } from "../ops/log2.js";
+import { ReLU } from "../ops/relu.js";
+import { Exp2 } from "../ops/exp2.js";
+import { Ln } from "../ops/ln.js";
+
 import { AutogradFunction } from "../autograd/function.js";
 
 export class Tensor {
@@ -50,6 +58,48 @@ export class Tensor {
     return addOp.forward(this, tensor);
   }
 
+  async mul(tensor: Tensor) {
+    const mulOp = await Mul.create();
+
+    return mulOp.forward(this, tensor);
+  }
+
+  async matmul(tensor: Tensor) {
+    const matmulOp = await MatMul.create();
+
+    return matmulOp.forward(this, tensor);
+  }
+
+  async exp() {
+    const expOp = await Exp.create();
+
+    return expOp.forward(this);
+  }
+
+  async log2() {
+    const log2Op = await Log2.create();
+
+    return log2Op.forward(this);
+  }
+
+  async ln() {
+    const lnOp = await Ln.create();
+
+    return lnOp.forward(this);
+  }
+
+  async exp2() {
+    const exp2Op = await Exp2.create();
+
+    return exp2Op.forward(this);
+  }
+
+  async relu() {
+    const reluOp = await ReLU.create();
+
+    return reluOp.forward(this);
+  }
+
   transpose() {
     const [rows, cols] = this.shape;
     const transposedData = new Float32Array(this.data.length);
@@ -64,17 +114,10 @@ export class Tensor {
   }
 
   async setGrad(grad: Tensor) {
-    console.log(
-      "setting grad",
-      grad.data.toString(),
-      "for",
-      this.context,
-      "data",
-      this.data.toString(),
-    );
     if (!this.grad) {
       this.grad = grad;
     } else {
+      // for the case there are multiple grads routing to the same tensor/node
       const [grad] = await this.add(this.grad);
       this.grad = grad;
     }
@@ -110,25 +153,13 @@ export class Tensor {
     const dfs = (node: Tensor) => {
       if (visited.has(node)) return;
       visited.add(node);
-      console.log("node", node.data.toString());
-      console.log("node.op", node.context);
-      console.log(
-        "parents",
-        node.context?.parents.map(([t]) => t.data.toString()),
-      );
-      console.log("\n");
-      for (const [parent] of node.context?.parents || []) {
+      for (const parent of node.context?.parents || []) {
         dfs(parent);
       }
       topo_order.push(node);
     };
 
     dfs(this);
-    // TODO this is wrong!!
-    console.log(
-      "topo_order",
-      topo_order.map((t) => t.context),
-    );
 
     return topo_order;
   }

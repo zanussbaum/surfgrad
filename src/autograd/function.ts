@@ -11,7 +11,7 @@ export abstract class AutogradFunction {
   protected shaderModule: GPUShaderModule | null = null;
   protected bindGroupLayout: GPUBindGroupLayout | null = null;
   protected abstract readonly shaderPath: string;
-  public parents: [Tensor, number][] = [];
+  public parents: Tensor[] = [];
   protected inputs: Tensor[] = [];
   protected output: Tensor | null = null;
   protected requiresGrad: boolean[] = [];
@@ -33,34 +33,11 @@ export abstract class AutogradFunction {
   }
 
   async setAutogradContext(inputs: Tensor[], output: Tensor): Promise<void> {
-    console.log(
-      "binding output.data",
-      output.data.toString(),
-      "to inputs",
-      inputs
-        .filter((input) => input.requires_grad)
-        .map((input) => input.data.toString()),
-    );
-    // TODO why is exp and ln not getting bound?
-    // Set up next_functions for backpropagation
-    const parents: [Tensor, number][] = [];
+    // parents is a list of tensors that have requires_grad = true
+    const parents: Tensor[] = [];
     for (let i = 0; i < inputs.length; i++) {
-      console.log(
-        "input",
-        inputs[i].data.toString(),
-        "requires_grad",
-        inputs[i].requires_grad,
-      );
       if (inputs[i].requires_grad) {
-        console.log(
-          "setting op",
-          this,
-          "as next function for input",
-          i,
-          "gradFn",
-          inputs[i].context,
-        );
-        parents.push([inputs[i], i]);
+        parents.push(inputs[i]);
       }
     }
 
@@ -74,13 +51,6 @@ export abstract class AutogradFunction {
     for (let i = 0; i < inputs.length; i++) {
       inputs[i].requires_grad = false;
     }
-    console.log(
-      "setting context for output",
-      output.data.toString(),
-      "to",
-      this,
-    );
-    console.log("\n");
     output.context = this;
   }
 
