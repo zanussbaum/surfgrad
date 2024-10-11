@@ -79,4 +79,4 @@ Contributions to `surfgrad` are welcome! If you'd like to contribute, please for
 
 ---
 
-SurfGrad is licensed under the MIT License. See the LICENSE file for details.
+SurfGrad is licensed under the Apache 2.0 License.
