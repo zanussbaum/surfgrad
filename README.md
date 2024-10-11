@@ -1,6 +1,6 @@
 # surfgrad
 
-================
+---
 
 **surfgrad** is a high-performance, WebGPU-powered AutoGrad library that enables browser-based tensor operations with GPU acceleration. 
 
