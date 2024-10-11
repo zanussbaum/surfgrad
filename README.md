@@ -16,7 +16,7 @@ It's heavily inspired by [micrograd](https://github.com/karpathy/micrograd),
 To use `surfgrad`,
 
 ```typescript
-import { Tensor } from './tensor/tensor';
+import { Tensor } from "surfgrad";
 
 const tensorA = new Tensor(new Float32Array([1, 2, 3, 4]), shape: [2, 2], requires_grad: true);
 const tensorB = new Tensor(new Float32Array([5, 6, 7, 8]), shape: [2, 2], requires_grad: true);
