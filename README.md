@@ -2,7 +2,16 @@
 
 ================
 
-`surfgrad` is a WebGPU-backed AutoGrad library for running tensor operations in your browser.
+**surfgrad** is a high-performance, WebGPU-powered AutoGrad library that enables browser-based tensor operations with GPU acceleration. 
+
+Key Features:
+
+- 🚀 Blazing-fast tensor operations leveraging WebGPU
+- 🧠 Automatic differentiation for deep learning in the browser
+- 🌐 Zero backend dependencies - runs entirely client-side
+- 📦 Lightweight and easy to integrate into existing web projects
+
+Perfect for running tensor operations and (in the future) machine learning models in the browser!
 
 It's heavily inspired by [micrograd](https://github.com/karpathy/micrograd),
 [tinygrad](https://github.com/tinygrad/tinygrad), and [PyTorch](https://github.com/pytorch/pytorch) and aims to leverage the power of WebGPU/WGSL for in-browser machine learning.
