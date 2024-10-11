@@ -5,7 +5,6 @@ export class Ln extends UnaryOp {
   protected readonly shaderPath: string = "/src/shaders/ln.wgsl";
   async backward(grad_output: Tensor): Promise<Tensor[]> {
     const [input] = this.inputs;
-    const inputRequiresGrad = this.requiresGrad;
 
     // The gradient of ln(x) is 1 / x
     const inverseArray = new Float32Array(input.data.length);
