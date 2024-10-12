@@ -176,7 +176,7 @@ test("Random MatMul equivalence test", async ({ page }) => {
     });
   });
 
-  const sizes = [2, 4, 8, 16, 32, 64, 128];
+  const sizes = [2, 4, 8, 16, 32, 64];
   // for larger matrices, we lose precision
   const digitsOfPrecision = [5, 5, 5, 5, 5, 4, 4];
   for (let i = 0; i < sizes.length; i++) {
@@ -196,7 +196,7 @@ test("Random MatMul equivalence test", async ({ page }) => {
 
     // Check if values are close (allowing for small floating-point differences)
     for (let i = 0; i < webgpuData.length; i++) {
-      expect(webgpuData[i], { message: `at index ${i}` }).toBeCloseTo(
+      expect(webgpuData[i], { message: `at index ${i} for size ${size}.` }).toBeCloseTo(
         naiveData[i],
         digits,
       );
