@@ -156,9 +156,10 @@ export abstract class BinaryOp extends AutogradFunction {
     pass.setBindGroup(0, bindGroup);
 
     const WORKGROUP_SIZE = 16;
+    const TILE_SIZE = 4;
     pass.dispatchWorkgroups(
-      Math.ceil(a.shape[0] / WORKGROUP_SIZE),
-      Math.ceil(b.shape[1] / WORKGROUP_SIZE),
+      Math.ceil(a.shape[0] / (WORKGROUP_SIZE)),
+      Math.ceil(b.shape[1] / (TILE_SIZE * WORKGROUP_SIZE)),
     );
     pass.end();
 
