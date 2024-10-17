@@ -176,9 +176,9 @@ test("Random MatMul equivalence test", async ({ page }) => {
     });
   });
 
-  const sizes = [2, 4, 8, 16, 32, 64];
+  const sizes = [2, 4, 8, 16, 32, 64, 128, 256];
   // for larger matrices, we lose precision
-  const digitsOfPrecision = [5, 5, 5, 5, 5, 4, 4];
+  const digitsOfPrecision = [5, 5, 5, 5, 5, 4, 4, 3];
   for (let i = 0; i < sizes.length; i++) {
     const size = sizes[i];
     const digits = digitsOfPrecision[i];
@@ -193,6 +193,8 @@ test("Random MatMul equivalence test", async ({ page }) => {
 
     // Check if shapes match
     expect(webgpuData.length).toBe(naiveData.length);
+    // console.log("webgpuData", webgpuData.toString());
+    // console.log("naiveData", naiveData.toString());
 
     // Check if values are close (allowing for small floating-point differences)
     for (let i = 0; i < webgpuData.length; i++) {
