@@ -196,10 +196,9 @@ test("Random MatMul equivalence test", async ({ page }) => {
 
     // Check if values are close (allowing for small floating-point differences)
     for (let i = 0; i < webgpuData.length; i++) {
-      expect(webgpuData[i], { message: `at index ${i} for size ${size}.` }).toBeCloseTo(
-        naiveData[i],
-        digits,
-      );
+      expect(webgpuData[i], {
+        message: `at index ${i} for size ${size}.`,
+      }).toBeCloseTo(naiveData[i], digits);
     }
   }
 
