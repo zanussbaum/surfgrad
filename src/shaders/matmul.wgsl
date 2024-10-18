@@ -27,23 +27,93 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     // Compute the 2D tile
     for (var k = 0u; k < dimensions.K; k++) {
-        for (var i = 0u; i < TILE_M; i++) {
-            let a_element = a[(row + i) * dimensions.K + k];
-            for (var j = 0u; j < TILE_N; j++) {
-                let b_element = b[k * dimensions.N + (col + j)];
-                sums[i][j] += a_element * b_element;
-            }
+      let a_00 = a[row * dimensions.K + k];
+      let a01 = a[(row + 1) * dimensions.K + k];
+      let a02 = a[(row + 2) * dimensions.K + k];
+      let a03 = a[(row + 3) * dimensions.K + k];
+      let b_00 = b[k * dimensions.N + col];
+      let b01 = b[k * dimensions.N + (col + 1)];
+      let b02 = b[k * dimensions.N + (col + 2)];
+      let b03 = b[k * dimensions.N + (col + 3)];
+      sums[0][0] += a_00 * b_00;
+      sums[0][1] += a_00 * b01;
+      sums[0][2] += a_00 * b02;
+      sums[0][3] += a_00 * b03;
+      sums[1][0] += a01 * b_00;
+      sums[1][1] += a01 * b01;
+      sums[1][2] += a01 * b02;
+      sums[1][3] += a01 * b03;
+      sums[2][0] += a02 * b_00;
+      sums[2][1] += a02 * b01;
+      sums[2][2] += a02 * b02;
+      sums[2][3] += a02 * b03;
+      sums[3][0] += a03 * b_00;
+      sums[3][1] += a03 * b01;
+      sums[3][2] += a03 * b02;
+      sums[3][3] += a03 * b03;
+    }
+
+    // Row 0
+    if (row < dimensions.M) {
+        if (col < dimensions.N) {
+            result[row * dimensions.N + col] = sums[0][0];
+        }
+        if (col + 1 < dimensions.N) {
+            result[row * dimensions.N + (col + 1)] = sums[0][1];
+        }
+        if (col + 2 < dimensions.N) {
+            result[row * dimensions.N + (col + 2)] = sums[0][2];
+        }
+        if (col + 3 < dimensions.N) {
+            result[row * dimensions.N + (col + 3)] = sums[0][3];
         }
     }
 
-    // Write results
-    for (var i = 0u; i < TILE_M; i++) {
-        for (var j = 0u; j < TILE_N; j++) {
-            let output_row = row + i;
-            let output_col = col + j;
-            if (output_row < dimensions.M && output_col < dimensions.N) {
-                result[output_row * dimensions.N + output_col] = sums[i][j];
-            }
+    // Row 1
+    if (row + 1 < dimensions.M) {
+        if (col < dimensions.N) {
+            result[(row + 1) * dimensions.N + col] = sums[1][0];
+        }
+        if (col + 1 < dimensions.N) {
+            result[(row + 1) * dimensions.N + (col + 1)] = sums[1][1];
+        }
+        if (col + 2 < dimensions.N) {
+            result[(row + 1) * dimensions.N + (col + 2)] = sums[1][2];
+        }
+        if (col + 3 < dimensions.N) {
+            result[(row + 1) * dimensions.N + (col + 3)] = sums[1][3];
+        }
+    }
+
+    // Row 2
+    if (row + 2 < dimensions.M) {
+        if (col < dimensions.N) {
+            result[(row + 2) * dimensions.N + col] = sums[2][0];
+        }
+        if (col + 1 < dimensions.N) {
+            result[(row + 2) * dimensions.N + (col + 1)] = sums[2][1];
+        }
+        if (col + 2 < dimensions.N) {
+            result[(row + 2) * dimensions.N + (col + 2)] = sums[2][2];
+        }
+        if (col + 3 < dimensions.N) {
+            result[(row + 2) * dimensions.N + (col + 3)] = sums[2][3];
+        }
+    }
+
+    // Row 3
+    if (row + 3 < dimensions.M) {
+        if (col < dimensions.N) {
+            result[(row + 3) * dimensions.N + col] = sums[3][0];
+        }
+        if (col + 1 < dimensions.N) {
+            result[(row + 3) * dimensions.N + (col + 1)] = sums[3][1];
+        }
+        if (col + 2 < dimensions.N) {
+            result[(row + 3) * dimensions.N + (col + 2)] = sums[3][2];
+        }
+        if (col + 3 < dimensions.N) {
+            result[(row + 3) * dimensions.N + (col + 3)] = sums[3][3];
         }
     }
 }

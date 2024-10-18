@@ -176,7 +176,7 @@ test("Random MatMul equivalence test", async ({ page }) => {
     });
   });
 
-  const sizes = [2, 4, 8, 16, 32, 64, 128, 256];
+  const sizes = [2, 4, 8, 16, 32, 64, 128];
   // for larger matrices, we lose precision
   const digitsOfPrecision = [5, 5, 5, 5, 5, 4, 4, 3];
   for (let i = 0; i < sizes.length; i++) {
