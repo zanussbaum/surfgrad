@@ -3,13 +3,12 @@ name: Release Please
 
 on:
   workflow_run:
-    workflows: ["Test"] # This should match the name of your CI workflow
+    workflows: ["Test"]
     types:
       - completed
-  push:
     branches:
       - main
-      - test-release # Added for testing
+      - test-release
 
 permissions:
   contents: write
@@ -18,13 +17,13 @@ permissions:
 
 jobs:
   release-please:
+    # Only run if the CI workflow succeeded
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v4
         id: release
         with:
-          # For testing different branches
           default-branch: ${{ github.ref_name }}
           release-type: node
           package-name: surfgrad
@@ -39,7 +38,6 @@ jobs:
               {"type":"test","section":"Tests","hidden":true}
             ]
 
-      # The following steps will only run if a release PR was created
       - uses: actions/checkout@v4
         if: ${{ steps.release.outputs.release_created }}
 
@@ -52,7 +50,6 @@ jobs:
       - run: npm ci
         if: ${{ steps.release.outputs.release_created }}
 
-      # Build before publishing
       - run: npm run build
         if: ${{ steps.release.outputs.release_created }}
 
