@@ -2,42 +2,27 @@
 name: Release Please
 
 on:
+  push:
+    branches:
+      - main
+      - test-release
   workflow_run:
     workflows: ["Test"]
     types:
       - completed
 
-permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
-
 jobs:
-  check-workflow:
-    runs-on: ubuntu-latest
-    # Add this step to debug workflow_run event
-    steps:
-      - name: Debug workflow_run event
-        env:
-          EVENT_JSON: ${{ toJSON(github.event) }}
-        run: |
-          echo "Workflow run event details:"
-          echo "$EVENT_JSON"
-          echo "Source branch: ${{ github.event.workflow_run.head_branch }}"
-          echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
-
   release-please:
-    needs: check-workflow
-    # Modify condition to check head_branch
+    # Run on direct pushes OR successful test workflow completions
     if: |
-      github.event.workflow_run.conclusion == 'success' && 
-      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'test-release')
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v4
         id: release
         with:
-          default-branch: ${{ github.event.workflow_run.head_branch }}
+          default-branch: ${{ github.event_name == 'push' && github.ref_name || github.event.workflow_run.head_branch }}
           release-type: node
           package-name: surfgrad
           changelog-types: |
@@ -66,7 +51,6 @@ jobs:
       - run: npm run build
         if: ${{ steps.release.outputs.release_created }}
 
-      # Add dry run step before actual publish
-      - name: NPM Publish
+      - name: NPM Publish Dry Run
         run: npm publish --dry-run
         if: ${{ steps.release.outputs.release_created }}
