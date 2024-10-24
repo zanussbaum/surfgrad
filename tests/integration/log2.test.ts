@@ -52,7 +52,7 @@ test("Elementwise log2 forward and backward pass", async ({ page }) => {
 
   expect(zData).toEqual(
     new Float32Array([
-      0.0, 1, 1.5849623680114746, 2, 2.321928024291992, 2.5849623680114746,
+      0.0, 1, 1.5849624872207642, 2, 2.321928024291992, 2.5849623680114746,
     ]),
   );
 

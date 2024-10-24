@@ -71,8 +71,8 @@ test("Autograd graph creation test", async ({ page }) => {
   expect(result.expResult.shape).toEqual([1, 1]);
 
   expect(mulResultData).toEqual(new Float32Array([6.0]));
-  expect(expResultData).toEqual(new Float32Array([403.4286804199219]));
-  expect(addResultData).toEqual(new Float32Array([404.4286804199219]));
+  expect(expResultData).toEqual(new Float32Array([403.4287109375]));
+  expect(addResultData).toEqual(new Float32Array([404.4287109375]));
   expect(lnResultData).toEqual(new Float32Array([6.002475261688232]));
   expect(reluResultData).toEqual(new Float32Array([6.002475261688232]));
   expect(addtwoResultData).toEqual(new Float32Array([8.002475261688232]));
@@ -108,8 +108,8 @@ test("Autograd graph creation test", async ({ page }) => {
   expect(lnResultGradData).toEqual(new Float32Array([0.12496133148670197]));
   expect(addResultGradData).toEqual(new Float32Array([0.00030898235854692757]));
   expect(expResultGradData).toEqual(new Float32Array([0.00030898235854692757]));
-  expect(mulResultGradData).toEqual(new Float32Array([0.12465234845876694]));
-  expect(xGradData).toEqual(new Float32Array([0.3739570379257202]));
+  expect(mulResultGradData).toEqual(new Float32Array([0.12465235590934753]));
+  expect(xGradData).toEqual(new Float32Array([0.3739570677280426]));
   expect(yGradData).toEqual(new Float32Array([0.24930469691753387]));
 
   await page.close();
