@@ -1,4 +1,3 @@
-# .github/workflows/test.yml
 name: Test
 
 on:
@@ -44,13 +43,12 @@ jobs:
         run: npm ci
         
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright install chrome-canary
         
       - name: Run integration tests
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run integration
-        env:
-          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/google-chrome
-          PLAYWRIGHT_LAUNCH_OPTIONS: '{"args": ["--enable-unsafe-webgpu", "--enable-features=Vulkan,UseSkiaRenderer", "--enable-dawn-features=allow_unsafe_apis"]}'
+        run: xvfb-run --auto-servernum npm run integration
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
