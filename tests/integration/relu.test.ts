@@ -10,11 +10,11 @@ test("Elementwise log2 forward and backward pass", async ({ page }) => {
   // Inject your test function
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
-      // @ts-ignore
+      // @ts-expect-error ignore error for tests
       import("/dist/bundle.js").then((module) => {
         const { Tensor } = module;
 
-        // @ts-ignore
+        // @ts-expect-error ignore error for tests
         window.runMulTest = async function () {
           const x = new Tensor(
             new Float32Array([1.0, -2.0, 3.0, -4.0, 5.0, 6.0]),
@@ -39,7 +39,7 @@ test("Elementwise log2 forward and backward pass", async ({ page }) => {
   });
 
   // Run the test function in the browser context
-  // @ts-ignore
+  // @ts-expect-error ignore error for tests
   const result = await page.evaluate(() => window.runMulTest());
 
   // Perform assertions

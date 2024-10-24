@@ -14,19 +14,24 @@
     "build-bundle": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --format=esm --target=es2020",
     "unit": "npm run build-clean && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "integration": "npm run build-clean && npx playwright test",
-    "benchmark": "npm run build-clean && cd benchmarks && npm install && npm start"
+    "benchmark": "npm run build-clean && cd benchmarks && npm install && npm start",
+    "lint": "npx eslint src tests"
   },
   "devDependencies": {
+    "@eslint/js": "^9.13.0",
     "@playwright/test": "^1.47.2",
+    "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.13",
     "@webgpu/types": "^0.1.46",
     "esbuild": "^0.24.0",
+    "eslint": "^9.13.0",
     "http-server": "^14.1.0",
     "jest": "^29.7.0",
     "playwright": "^1.47.2",
     "prettier": "3.3.3",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.11.0"
   },
   "files": [
     "dist"

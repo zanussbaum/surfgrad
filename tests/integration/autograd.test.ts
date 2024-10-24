@@ -10,26 +10,26 @@ test("Autograd graph creation test", async ({ page }) => {
   // Inject your test function
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
-      // @ts-ignore
+      // @ts-expect-error ignore error for tests
       import("/dist/bundle.js").then((module) => {
-        const { Tensor, Mul, Exp, Add, Ln, ReLU } = module;
+        const { Tensor } = module;
 
-        // @ts-ignore
+        // @ts-expect-error ignore error for tests
         window.runMulTest = async function () {
           const x = new Tensor(new Float32Array([2.0]), [1, 1], true);
           const y = new Tensor(new Float32Array([3.0]), [1, 1], true);
 
-          let [mulResult] = await x.mul(y);
-          let [expResult] = await mulResult.exp();
-          let [addResult] = await expResult.add(
+          const [mulResult] = await x.mul(y);
+          const [expResult] = await mulResult.exp();
+          const [addResult] = await expResult.add(
             new Tensor(new Float32Array([1.0]), [1], false),
           );
-          let [lnResult] = await addResult.ln();
-          let [reluResult] = await lnResult.relu();
-          let [addtwoResult] = await reluResult.add(
+          const [lnResult] = await addResult.ln();
+          const [reluResult] = await lnResult.relu();
+          const [addtwoResult] = await reluResult.add(
             new Tensor(new Float32Array([2.0]), [1], false),
           );
-          let [output] = await addtwoResult.ln();
+          const [output] = await addtwoResult.ln();
 
           // populate gradient
           await output.backward();
@@ -52,7 +52,7 @@ test("Autograd graph creation test", async ({ page }) => {
   });
 
   // Run the test function in the browser context
-  // @ts-ignore
+  // @ts-expect-error ignore error for tests
   const result = await page.evaluate(() => window.runMulTest());
 
   const mulResultData = new Float32Array(Object.values(result.mulResult.data));

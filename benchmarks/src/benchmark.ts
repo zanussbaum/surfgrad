@@ -83,7 +83,7 @@ async function runSingleBenchmark(
   // Benchmark runs
   const times: number[] = [];
   for (let i = 0; i < benchmarkRuns; i++) {
-    const [result, total_time] = await op.forward(a, b);
+    const [_, total_time] = await op.forward(a, b);
     times.push(total_time);
   }
 

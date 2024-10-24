@@ -131,7 +131,7 @@ export class Tensor {
     }
 
     // Start with gradient 1.0 for scalar outputs
-    let curr_grad = Tensor.onesLike(this);
+    const curr_grad = Tensor.onesLike(this);
     if (!this.grad) {
       await this.setGrad(curr_grad);
     }

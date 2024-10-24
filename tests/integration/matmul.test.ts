@@ -10,10 +10,10 @@ test("MatMul forward and backward pass", async ({ page }) => {
   // Inject your test function
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
-      // @ts-ignore
+      // @ts-expect-error ignore error for tests
       import("/dist/bundle.js").then((module) => {
         const { Tensor } = module;
-        // @ts-ignore
+        // @ts-expect-error ignore error for tests
         window.runMatMulTest = async function () {
           const x = new Tensor(
             new Float32Array([1, 2, 3, 4, 5, 6]),
@@ -52,7 +52,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
   });
 
   // Run the test function in the browser context
-  // @ts-ignore
+  // @ts-expect-error ignore error for tests
   const result = await page.evaluate(() => window.runMatMulTest());
 
   // Perform assertions
@@ -104,7 +104,7 @@ test("Random MatMul equivalence test", async ({ page }) => {
   // Inject test functions
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
-      // @ts-ignore
+      // @ts-expect-error ignore error for tests
       import("/dist/bundle.js").then((module) => {
         const { Tensor } = module;
 
@@ -144,7 +144,6 @@ test("Random MatMul equivalence test", async ({ page }) => {
           return matrix.reduce((acc, row) => acc.concat(row), []);
         }
 
-        // @ts-ignore
         window.runRandomMatMulTest = async function (size: number) {
           const a = randomSquareMatrix(size);
           const b = randomSquareMatrix(size);
@@ -176,9 +175,9 @@ test("Random MatMul equivalence test", async ({ page }) => {
     });
   });
 
-  const sizes = [2, 4, 8, 16, 32, 64, 128];
+  const sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512];
   // for larger matrices, we lose precision
-  const digitsOfPrecision = [5, 5, 5, 5, 5, 4, 4, 3];
+  const digitsOfPrecision = [5, 5, 5, 5, 5, 4, 4, 3, 3, 3];
   for (let i = 0; i < sizes.length; i++) {
     const size = sizes[i];
     const digits = digitsOfPrecision[i];
@@ -197,10 +196,13 @@ test("Random MatMul equivalence test", async ({ page }) => {
     // console.log("naiveData", naiveData.toString());
 
     // Check if values are close (allowing for small floating-point differences)
+    const factor = Math.pow(10, -digits) / 2;
     for (let i = 0; i < webgpuData.length; i++) {
-      expect(webgpuData[i], {
-        message: `at index ${i} for size ${size}.`,
-      }).toBeCloseTo(naiveData[i], digits);
+      const diff = Math.abs(webgpuData[i] - naiveData[i]);
+      // nest expect otherwise the expects are too slow
+      if (diff > factor) {
+        expect(diff).toBeLessThanOrEqual(factor);
+      }
     }
   }
 
