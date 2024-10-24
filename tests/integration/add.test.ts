@@ -26,7 +26,7 @@ test("Elementwise scalar/broadcasted addition forward and backward pass", async 
           const y = new Tensor(new Float32Array([2.0]), [1], false);
 
           // Forward pass
-          const [z, _] = await x.add(y);
+          const [z] = await x.add(y);
           await z.backward();
 
           return {
@@ -90,7 +90,7 @@ test("Elementwise multiplication forward and backward pass", async ({
           );
 
           // Forward pass
-          const [z, _] = await x.add(y);
+          const [z] = await x.add(y);
 
           await z.backward();
 

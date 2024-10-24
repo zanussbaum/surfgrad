@@ -23,7 +23,7 @@ test("Elementwise log2 forward and backward pass", async ({ page }) => {
           );
 
           // Forward pass
-          const [z, _] = await x.relu();
+          const [z] = await x.relu();
 
           await z.backward();
 

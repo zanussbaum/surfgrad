@@ -26,7 +26,7 @@ test("Elementwise scalar/broadcasted multiplication forward and backward pass", 
           const y = new Tensor(new Float32Array([2.0]), [1], false);
 
           // Forward pass
-          const [z, _] = await x.mul(y);
+          const [z] = await x.mul(y);
 
           await z.backward();
 
@@ -94,7 +94,7 @@ test("Elementwise multiplication forward and backward pass", async ({
             true,
           );
 
-          const [z, _] = await x.mul(y);
+          const [z] = await x.mul(y);
 
           await z.backward();
 

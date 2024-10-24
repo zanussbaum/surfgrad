@@ -23,7 +23,7 @@ test("Elementwise ln forward and backward pass", async ({ page }) => {
           );
 
           // Forward pass
-          const [z, _] = await x.ln();
+          const [z] = await x.ln();
 
           await z.backward();
 

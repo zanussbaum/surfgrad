@@ -23,7 +23,7 @@ test("Elementwise exp2 forward and backward pass", async ({ page }) => {
           );
 
           // Forward pass
-          const [z, _] = await x.exp();
+          const [z] = await x.exp();
 
           await z.backward();
           return {

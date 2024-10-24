@@ -27,7 +27,7 @@ test("MatMul forward and backward pass", async ({ page }) => {
           );
 
           // Forward pass
-          const [y, _] = await x.matmul(w);
+          const [y] = await x.matmul(w);
 
           const loss = new Tensor(
             new Float32Array(y.data.length).fill(1),
@@ -160,7 +160,7 @@ test("Random MatMul equivalence test", async ({ page }) => {
           );
 
           // WebGPU MatMul
-          const [webgpuResult, _] = await tensorA.matmul(tensorB);
+          const [webgpuResult] = await tensorA.matmul(tensorB);
 
           // Naive MatMul
           const naiveResult = naiveMatMul(a, b);
