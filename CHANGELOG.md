@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/zanussbaum/surfgrad/compare/v1.0.1...v1.0.2) (2024-10-24)
+
+
+### Bug Fixes
+
+* don't run ci tests on release please merge ([8d36f68](https://github.com/zanussbaum/surfgrad/commit/8d36f68f3f4a965c2d99433e6e1582e056a7e8f2))
+
 ## [1.0.1](https://github.com/zanussbaum/surfgrad/compare/v1.0.0...v1.0.1) (2024-10-24)
 
 
