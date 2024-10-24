@@ -7,7 +7,7 @@ on:
     types:
       - completed
     branches:
-      - main
+      - main 
       - test-release
 
 permissions:
@@ -16,15 +16,31 @@ permissions:
   id-token: write
 
 jobs:
+  check-workflow:
+    runs-on: ubuntu-latest
+    # Add this step to debug workflow_run event
+    steps:
+      - name: Debug workflow_run event
+        env:
+          EVENT_JSON: ${{ toJSON(github.event) }}
+        run: |
+          echo "Workflow run event details:"
+          echo "$EVENT_JSON"
+          echo "Source branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
+
   release-please:
-    # Only run if the CI workflow succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: check-workflow
+    # Modify condition to check head_branch
+    if: |
+      github.event.workflow_run.conclusion == 'success' && 
+      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'test-release')
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v4
         id: release
         with:
-          default-branch: ${{ github.ref_name }}
+          default-branch: ${{ github.event.workflow_run.head_branch }}
           release-type: node
           package-name: surfgrad
           changelog-types: |
@@ -53,7 +69,7 @@ jobs:
       - run: npm run build
         if: ${{ steps.release.outputs.release_created }}
 
-      - run: npm publish --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      # Add dry run step before actual publish
+      - name: NPM Publish
+        run: npm publish --dry-run
         if: ${{ steps.release.outputs.release_created }}
