@@ -11,6 +11,11 @@ on:
     types:
       - completed
 
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   release-please:
     if: |
@@ -27,11 +32,11 @@ jobs:
             echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
           fi
 
-      # Checkout with the correct branch
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ steps.branch-name.outputs.branch }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}  # Using PAT for checkout
 
       - uses: googleapis/release-please-action@v4
         id: release
@@ -39,6 +44,7 @@ jobs:
           release-type: node
           target-branch: ${{ steps.branch-name.outputs.branch }}
           config-file: .github/release-please-config.json
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}  # Using PAT for release-please
 
       - uses: actions/setup-node@v4
         if: ${{ steps.release.outputs.release_created }}
