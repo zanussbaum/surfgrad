@@ -67,14 +67,6 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         run: npm run build
 
-      - name: Debug Release Please Outputs
-        if: ${{ steps.release.outputs.release_created }}
-        run: |
-          echo "Release created: ${{ steps.release.outputs.release_created }}"
-          echo "Release tag name: ${{ steps.release.outputs.tag_name }}"
-          echo "Upload URL: ${{ steps.release.outputs.upload_url }}"
-          echo "HTML URL: ${{ steps.release.outputs.html_url }}"
-
       - name: NPM Publish Dry Run
         if: ${{ steps.release.outputs.release_created }}
         run: npm publish --dry-run
