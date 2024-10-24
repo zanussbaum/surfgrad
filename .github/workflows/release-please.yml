@@ -3,13 +3,13 @@ name: Release Please
 
 on:
   workflow_run:
-    workflows: ["Test"]  # This should match the name of your CI workflow
+    workflows: ["Test"] # This should match the name of your CI workflow
     types:
       - completed
   push:
     branches:
       - main
-      - test-release  # Added for testing
+      - test-release # Added for testing
 
 permissions:
   contents: write
@@ -45,8 +45,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "20.x"
+          registry-url: "https://registry.npmjs.org"
         if: ${{ steps.release.outputs.release_created }}
 
       - run: npm ci
