@@ -13,37 +13,38 @@ on:
 
 jobs:
   release-please:
-    # Run on direct pushes OR successful test workflow completions
     if: |
       github.event_name == 'push' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
+      - name: Get branch name
+        id: branch-name
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+          fi
+
+      # Checkout with the correct branch
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.branch-name.outputs.branch }}
+
       - uses: google-github-actions/release-please-action@v4
         id: release
         with:
-          default-branch: ${{ github.event_name == 'push' && github.ref_name || github.event.workflow_run.head_branch }}
           release-type: node
-          package-name: surfgrad
-          changelog-types: |
-            [
-              {"type":"feat","section":"Features","hidden":false},
-              {"type":"fix","section":"Bug Fixes","hidden":false},
-              {"type":"docs","section":"Documentation","hidden":false},
-              {"type":"chore","section":"Miscellaneous","hidden":false},
-              {"type":"refactor","section":"Refactor","hidden":false},
-              {"type":"perf","section":"Performance","hidden":false},
-              {"type":"test","section":"Tests","hidden":true}
-            ]
-
-      - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created }}
+          target-branch: ${{ steps.branch-name.outputs.branch }}
+          config-file: .github/release-please-config.json
 
       - uses: actions/setup-node@v4
+        if: ${{ steps.release.outputs.release_created }}
         with:
           node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
-        if: ${{ steps.release.outputs.release_created }}
 
       - run: npm ci
         if: ${{ steps.release.outputs.release_created }}
@@ -53,4 +54,6 @@ jobs:
 
       - name: NPM Publish Dry Run
         run: npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
         if: ${{ steps.release.outputs.release_created }}
