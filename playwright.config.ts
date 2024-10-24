@@ -9,7 +9,7 @@ const config: PlaywrightTestConfig = {
         "--use-vulkan=swiftshader",
         "--enable-unsafe-webgpu",
         "--disable-vulkan-fallback-to-gl-for-testing",
-        // '--dignore-gpu-blocklist',
+        '--dignore-gpu-blocklist',
         "--use-angle=vulkan",
       ],
     },
@@ -21,6 +21,10 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
+  reporter: [
+    ['html', { outputFolder: 'test-results/playwright-report' }],
+    ['list'] // This gives you console output too
+  ],
 };
 
 export default config;
