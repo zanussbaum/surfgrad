@@ -18,16 +18,7 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
-  projects: [
-    {
-      name: 'chromium',
-      use: { 
-        browserName: 'chromium',
-        // Use Chrome Canary for better WebGPU support
-        channel: 'chrome'
-      },
-    }
-  ]
+  // Removed projects section since we're just using default Chromium
 };
 
 export default config;
