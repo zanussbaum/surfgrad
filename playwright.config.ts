@@ -1,19 +1,18 @@
 import { PlaywrightTestConfig } from "@playwright/test";
 
-
 const config: PlaywrightTestConfig = {
   use: {
     headless: true,
     launchOptions: {
       args: [
-        '--enable-features=Vulkan,UseSkiaRenderer',
-        '--use-vulkan=swiftshader',
-        '--enable-unsafe-webgpu',
-        '--disable-vulkan-fallback-to-gl-for-testing',
+        "--enable-features=Vulkan,UseSkiaRenderer",
+        "--use-vulkan=swiftshader",
+        "--enable-unsafe-webgpu",
+        "--disable-vulkan-fallback-to-gl-for-testing",
         // '--dignore-gpu-blocklist',
-        '--use-angle=vulkan'
-      ]
-    }
+        "--use-angle=vulkan",
+      ],
+    },
   },
   testDir: "./tests/integration",
   webServer: {

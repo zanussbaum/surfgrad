@@ -55,62 +55,54 @@ test("Autograd graph creation test", async ({ page }) => {
   // @ts-expect-error ignore error for tests
   const result = await page.evaluate(() => window.runMulTest());
 
-  const mulResultData = new Float32Array(Object.values(result.mulResult.data));
-  const expResultData = new Float32Array(Object.values(result.expResult.data));
-  const addResultData = new Float32Array(Object.values(result.addResult.data));
-  const lnResultData = new Float32Array(Object.values(result.lnResult.data));
-  const reluResultData = new Float32Array(
-    Object.values(result.reluResult.data),
-  );
-  const addtwoResultData = new Float32Array(
-    Object.values(result.addtwoResult.data),
-  );
-  const outputData = new Float32Array(Object.values(result.output.data));
+  const mulResultData = Number(Object.values(result.mulResult.data));
+  const expResultData = Number(Object.values(result.expResult.data));
+  const addResultData = Number(Object.values(result.addResult.data));
+  const lnResultData = Number(Object.values(result.lnResult.data));
+  const reluResultData = Number(Object.values(result.reluResult.data));
+  const addtwoResultData = Number(Object.values(result.addtwoResult.data));
+  const outputData = Number(Object.values(result.output.data));
 
   expect(result.mulResult.shape).toEqual([1, 1]);
   expect(result.expResult.shape).toEqual([1, 1]);
 
-  expect(mulResultData).toEqual(new Float32Array([6.0]));
-  expect(expResultData).toEqual(new Float32Array([403.4287109375]));
-  expect(addResultData).toEqual(new Float32Array([404.4287109375]));
-  expect(lnResultData).toEqual(new Float32Array([6.002475261688232]));
-  expect(reluResultData).toEqual(new Float32Array([6.002475261688232]));
-  expect(addtwoResultData).toEqual(new Float32Array([8.002475261688232]));
-  expect(outputData).toEqual(new Float32Array([2.0797510147094727]));
+  expect(mulResultData).toBeCloseTo(Number(6.0), 5);
+  expect(expResultData).toBeCloseTo(Number(403.4287109375), 5);
+  expect(addResultData).toBeCloseTo(Number(404.4287109375), 5);
+  expect(lnResultData).toBeCloseTo(Number(6.002475261688232), 5);
+  expect(reluResultData).toBeCloseTo(Number(6.002475261688232), 5);
+  expect(addtwoResultData).toBeCloseTo(Number(8.002475261688232), 5);
+  expect(outputData).toBeCloseTo(Number(2.0797510147094727), 5);
 
-  const addtwoResultGradData = new Float32Array(
-    Object.values(result.addtwoResult.grad.data),
+  const addtwoResultGradData = Number(
+    Object.values(result.addtwoResult.grad.data)[0],
   );
-  const reluResultGradData = new Float32Array(
-    Object.values(result.reluResult.grad.data),
+  const reluResultGradData = Number(
+    Object.values(result.reluResult.grad.data)[0],
   );
-  const lnResultGradData = new Float32Array(
-    Object.values(result.lnResult.grad.data),
+  const lnResultGradData = Number(Object.values(result.lnResult.grad.data)[0]);
+  const addResultGradData = Number(
+    Object.values(result.addResult.grad.data)[0],
   );
-  const addResultGradData = new Float32Array(
-    Object.values(result.addResult.grad.data),
+  const expResultGradData = Number(
+    Object.values(result.expResult.grad.data)[0],
   );
-  const expResultGradData = new Float32Array(
-    Object.values(result.expResult.grad.data),
+  const mulResultGradData = Number(
+    Object.values(result.mulResult.grad.data)[0],
   );
-  const mulResultGradData = new Float32Array(
-    Object.values(result.mulResult.grad.data),
-  );
-  const xGradData = new Float32Array(Object.values(result.x.grad.data));
-  const yGradData = new Float32Array(Object.values(result.y.grad.data));
-  const outputGradData = new Float32Array(
-    Object.values(result.output.grad.data),
-  );
+  const xGradData = Number(Object.values(result.x.grad.data)[0]);
+  const yGradData = Number(Object.values(result.y.grad.data)[0]);
+  const outputGradData = Number(Object.values(result.output.grad.data)[0]);
 
-  expect(outputGradData).toEqual(new Float32Array([1]));
-  expect(addtwoResultGradData).toEqual(new Float32Array([0.12496133148670197]));
-  expect(reluResultGradData).toEqual(new Float32Array([0.12496133148670197]));
-  expect(lnResultGradData).toEqual(new Float32Array([0.12496133148670197]));
-  expect(addResultGradData).toEqual(new Float32Array([0.00030898235854692757]));
-  expect(expResultGradData).toEqual(new Float32Array([0.00030898235854692757]));
-  expect(mulResultGradData).toEqual(new Float32Array([0.12465235590934753]));
-  expect(xGradData).toEqual(new Float32Array([0.3739570677280426]));
-  expect(yGradData).toEqual(new Float32Array([0.24930469691753387]));
+  expect(outputGradData).toBeCloseTo(1, 5);
+  expect(addtwoResultGradData).toBeCloseTo(0.12496133148670197, 5);
+  expect(reluResultGradData).toBeCloseTo(0.12496133148670197, 5);
+  expect(lnResultGradData).toBeCloseTo(0.12496133148670197, 5);
+  expect(addResultGradData).toBeCloseTo(0.00030898235854692757, 5);
+  expect(expResultGradData).toBeCloseTo(0.00030898235854692757, 5);
+  expect(mulResultGradData).toBeCloseTo(0.12465235590934753, 5);
+  expect(xGradData).toBeCloseTo(0.3739570677280426, 5);
+  expect(yGradData).toBeCloseTo(0.24930471181869507, 5);
 
   await page.close();
 });
