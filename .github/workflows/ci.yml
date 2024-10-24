@@ -6,6 +6,11 @@ on:
   push:
     branches: [main, test-release] # Added test-release branch
 
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'package.json'
+      - 'package-lock.json'
+
 jobs:
   unit:
     runs-on: ubuntu-latest
