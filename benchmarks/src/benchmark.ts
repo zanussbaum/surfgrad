@@ -1,5 +1,4 @@
-import { MatMul, Mul, Tensor, Add, Exp, Log2 } from "surfgrad";
-import { AutogradFunction } from "../../dist/autograd/function";
+import { MatMul, Mul, Tensor, Add, Exp, Log2, AutogradFunction } from "surfgrad";
 
 interface BenchmarkResult {
   shader: string;
