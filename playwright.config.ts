@@ -6,8 +6,13 @@ const config: PlaywrightTestConfig = {
     launchOptions: {
       args: [
         "--enable-unsafe-webgpu",
-        "--enable-features=Vulkan,UseSkiaRenderer",
-        "--enable-dawn-features=allow_unsafe_apis"
+        "--enable-features=Vulkan",
+        "--enable-dawn-features=allow_unsafe_apis",
+        "--disable-dawn-features=disallow_unsafe_apis",
+        // Adding these based on common WebGPU flags
+        "--enable-gpu",
+        "--no-sandbox",
+        "--ignore-gpu-blacklist",
       ]
     }
   },
@@ -18,7 +23,6 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
-  // Removed projects section since we're just using default Chromium
 };
 
 export default config;
