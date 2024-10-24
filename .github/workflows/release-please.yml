@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ steps.branch-name.outputs.branch }}
 
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action
         id: release
         with:
           release-type: node
