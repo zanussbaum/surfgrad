@@ -17,7 +17,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'npm'
+          
+      - name: Generate package-lock.json
+        run: npm install --package-lock-only
           
       - name: Install dependencies
         run: npm ci
@@ -34,17 +36,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'npm'
+          
+      - name: Generate package-lock.json
+        run: npm install --package-lock-only
           
       - name: Install dependencies
         run: npm ci
         
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
         
       - name: Run integration tests
-        run: npm run integration
-        
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run integration
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/google-chrome
+          PLAYWRIGHT_LAUNCH_OPTIONS: '{"args": ["--enable-unsafe-webgpu", "--enable-features=Vulkan,UseSkiaRenderer", "--enable-dawn-features=allow_unsafe_apis"]}'
+
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         if: always()
