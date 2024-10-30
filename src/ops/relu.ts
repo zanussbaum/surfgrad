@@ -1,8 +1,9 @@
 import { Tensor } from "../tensor/tensor.js";
 import { UnaryOp } from "../autograd/function.js";
+import { reluShader } from "../shaders/relu.js";
 
 export class ReLU extends UnaryOp {
-  protected readonly shaderPath: string = "/src/shaders/relu.wgsl";
+  protected readonly shader: string = reluShader;
 
   async backward(grad_output: Tensor): Promise<Tensor[]> {
     const [input] = this.inputs;

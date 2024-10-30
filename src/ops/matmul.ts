@@ -1,8 +1,9 @@
 import { BinaryOp } from "../autograd/function.js";
 import { Tensor } from "../tensor/tensor.js";
+import { matmulShader } from "../shaders/matmul.js";
 
 export class MatMul extends BinaryOp {
-  protected readonly shaderPath: string = "/src/shaders/matmul.wgsl";
+  protected readonly shader: string = matmulShader;
 
   validateShapes(a: Tensor, b: Tensor): Tensor {
     if (a.shape[1] !== b.shape[0]) {

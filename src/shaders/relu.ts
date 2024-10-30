@@ -1,3 +1,4 @@
+export const reluShader = `
 struct Dimensions {
   M: u32,
   N: u32,
@@ -14,6 +15,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let col = global_idx % dimensions.N;
 
   if (global_idx < dimensions.M * dimensions.N) {
-    result[row * dimensions.N + col] = exp2(a[row * dimensions.N + col]);
+    result[row * dimensions.N + col] = max(a[row * dimensions.N + col], 0);
   }
 }
+`;

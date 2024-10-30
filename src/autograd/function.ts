@@ -10,7 +10,7 @@ export abstract class AutogradFunction {
   protected pipeline: GPUComputePipeline | null = null;
   protected shaderModule: GPUShaderModule | null = null;
   protected bindGroupLayout: GPUBindGroupLayout | null = null;
-  protected abstract readonly shaderPath: string;
+  protected abstract readonly shader: string;
   public parents: Tensor[] = [];
   protected inputs: Tensor[] = [];
   protected output: Tensor | null = null;
@@ -70,7 +70,7 @@ export abstract class BinaryOp extends AutogradFunction {
 
     this.device = await initWebGPU();
 
-    const shaderCode = await (await fetch(this.shaderPath)).text();
+    const shaderCode = this.shader;
     this.shaderModule = this.device.createShaderModule({ code: shaderCode });
 
     const visibility = GPUShaderStage.COMPUTE;
@@ -214,7 +214,7 @@ export abstract class UnaryOp extends AutogradFunction {
 
     this.device = await initWebGPU();
 
-    const shaderCode = await (await fetch(this.shaderPath)).text();
+    const shaderCode = this.shader;
     this.shaderModule = this.device.createShaderModule({ code: shaderCode });
 
     const visibility = GPUShaderStage.COMPUTE;

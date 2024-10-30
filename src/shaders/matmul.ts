@@ -1,3 +1,4 @@
+export const matmulShader = `
 struct Dimensions {
   M: u32,
   K: u32,
@@ -325,3 +326,4 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         }
     }
 }
+`;

@@ -1,8 +1,9 @@
 import { BinaryOp } from "../autograd/function.js";
 import { Tensor } from "../tensor/tensor.js";
+import { addShader } from "../shaders/add.js";
 
 export class Add extends BinaryOp {
-  protected readonly shaderPath: string = "/src/shaders/add.wgsl";
+  protected readonly shader: string = addShader;
 
   validateShapes(a: Tensor, b: Tensor): Tensor {
     if (!a.shape.every((value, index) => value === b.shape[index])) {

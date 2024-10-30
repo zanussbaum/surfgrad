@@ -1,9 +1,10 @@
 import { Tensor } from "../tensor/tensor.js";
 import { UnaryOp } from "../autograd/function.js";
 import { Mul } from "./mul.js";
+import { exp2Shader } from "../shaders/exp2.js";
 
 export class Exp2 extends UnaryOp {
-  protected readonly shaderPath: string = "/src/shaders/exp2.wgsl";
+  protected readonly shader: string = exp2Shader;
 
   async backward(grad_output: Tensor): Promise<Tensor[]> {
     const exp_x = this.output;

@@ -1,8 +1,9 @@
 import { Tensor } from "../tensor/tensor.js";
 import { UnaryOp } from "../autograd/function.js";
+import { lnShader } from "../shaders/ln.js";
 
 export class Ln extends UnaryOp {
-  protected readonly shaderPath: string = "/src/shaders/ln.wgsl";
+  protected readonly shader: string = lnShader;
   async backward(grad_output: Tensor): Promise<Tensor[]> {
     const [input] = this.inputs;
 
