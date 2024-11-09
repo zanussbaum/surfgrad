@@ -1,0 +1,54 @@
+{
+  "name": "surfgrad",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc",
+    "start": "http-server -c-1",
+    "build-clean": "npm run clean && npm run build && npm run build-bundle",
+    "dev": "npm run build-clean && npm run start",
+    "prettier": "prettier --write .",
+    "build-bundle": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --format=esm --target=es2020",
+    "unit": "npm run build-clean && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "integration": "npm run build-clean && npx playwright test",
+    "benchmark": "npm run build-clean && cd benchmarks && npm install && npm start",
+    "lint": "npx eslint src tests"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@playwright/test": "^1.47.2",
+    "@types/eslint__js": "^8.42.3",
+    "@types/jest": "^29.5.13",
+    "@webgpu/types": "^0.1.46",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.13.0",
+    "http-server": "^14.1.0",
+    "jest": "^29.7.0",
+    "playwright": "^1.47.2",
+    "prettier": "3.3.3",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.11.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zanussbaum/surfgrad.git"
+  },
+  "keywords": [
+    "surfgrad",
+    "webgpu",
+    "machine learning",
+    "wgsl"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Zach Nussbaum",
+    "url": "https://github.com/zanussbaum"
+  }
+}
