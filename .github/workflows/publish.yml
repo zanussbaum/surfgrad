@@ -11,7 +11,7 @@ jobs:
   publish:
     if: |
       github.event.pull_request.merged == true &&
-      github.event.pull_request.title == 'chore(main)'
+      startsWith(github.event.pull_request.title, 'chore(main): release')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
