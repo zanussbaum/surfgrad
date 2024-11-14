@@ -13,7 +13,10 @@ permissions:
 
 jobs:
   release-please:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: |
+      github.event.workflow_run.conclusion == 'success' && 
+      github.event.workflow_run.head_branch == 'main' && 
+      !startsWith(github.event.workflow_run.head_commit.message, 'chore(main): release')
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
@@ -25,7 +28,6 @@ jobs:
 
       - uses: googleapis/release-please-action@v4
         id: release
-        if: "!startsWith(github.event.workflow_run.head_commit.message, 'chore(main): release')"
         with:
           release-type: node
           token: ${{ secrets.GITHUB_TOKEN }}
