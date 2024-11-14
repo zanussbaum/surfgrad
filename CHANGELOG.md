@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/zanussbaum/surfgrad/compare/v1.0.3...v1.0.4) (2024-11-14)
+
+
+### Bug Fixes
+
+* publish to npm ([#19](https://github.com/zanussbaum/surfgrad/issues/19)) ([f56f26e](https://github.com/zanussbaum/surfgrad/commit/f56f26ef434b18eb0443885aca031dfd4a8ffc4c))
+
 ## [1.0.3](https://github.com/zanussbaum/surfgrad/compare/v1.0.2...v1.0.3) (2024-11-14)
 
 
