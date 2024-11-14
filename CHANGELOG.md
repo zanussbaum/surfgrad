@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/zanussbaum/surfgrad/compare/v1.0.0...v1.0.1) (2024-11-14)
+
+
+### Bug Fixes
+
+* release please double release ([#9](https://github.com/zanussbaum/surfgrad/issues/9)) ([d546d89](https://github.com/zanussbaum/surfgrad/commit/d546d8911247cd05fa67249f4884332ad2699275))
+
 ## 1.0.0 (2024-11-09)
 
 
