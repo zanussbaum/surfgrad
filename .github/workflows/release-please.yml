@@ -19,8 +19,10 @@ permissions:
 jobs:
   release-please:
     if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      (github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'chore(main): release')) ||
+      (github.event_name == 'workflow_run' && 
+       github.event.workflow_run.conclusion == 'success' && 
+       !startsWith(github.event.workflow_run.head_commit.message, 'chore(main): release'))
     runs-on: ubuntu-latest
     steps:
       - name: Get branch name
@@ -36,15 +38,13 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ steps.branch-name.outputs.branch }}
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           release-type: node
           target-branch: ${{ steps.branch-name.outputs.branch }}
-          config-file: .github/release-please-config.json
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          config-file: .release-please-config.json
 
       # Only proceed with npm steps if a release was created
       - uses: actions/setup-node@v4
