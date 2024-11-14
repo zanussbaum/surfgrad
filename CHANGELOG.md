@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/zanussbaum/surfgrad/compare/v1.0.2...v1.0.3) (2024-11-14)
+
+
+### Bug Fixes
+
+* try to get rp working ([#14](https://github.com/zanussbaum/surfgrad/issues/14)) ([41f415c](https://github.com/zanussbaum/surfgrad/commit/41f415c634cc721f605b068cda98f6b2ecd411dc))
+
 ## [1.0.2](https://github.com/zanussbaum/surfgrad/compare/v1.0.1...v1.0.2) (2024-11-14)
 
 
