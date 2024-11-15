@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.10](https://github.com/zanussbaum/surfgrad/compare/v1.0.9...v1.0.10) (2024-11-15)
+
+
+### Bug Fixes
+
+* use registy for npm ([#31](https://github.com/zanussbaum/surfgrad/issues/31)) ([e7d9b8a](https://github.com/zanussbaum/surfgrad/commit/e7d9b8ad33e79191187f1fd9e4c56ba553e8168a))
+
 ## [1.0.9](https://github.com/zanussbaum/surfgrad/compare/v1.0.8...v1.0.9) (2024-11-15)
 
 
