@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.7](https://github.com/zanussbaum/surfgrad/compare/v1.0.6...v1.0.7) (2024-11-15)
+
+
+### Bug Fixes
+
+* restructure ([#25](https://github.com/zanussbaum/surfgrad/issues/25)) ([179d0c7](https://github.com/zanussbaum/surfgrad/commit/179d0c7d01b27a2cdb83fcb3d2b9d0bab5904f6c))
+
 ## [1.0.6](https://github.com/zanussbaum/surfgrad/compare/v1.0.5...v1.0.6) (2024-11-14)
 
 
