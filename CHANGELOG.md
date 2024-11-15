@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.12](https://github.com/zanussbaum/surfgrad/compare/v1.0.11...v1.0.12) (2024-11-15)
+
+
+### Bug Fixes
+
+* commit lock ([#35](https://github.com/zanussbaum/surfgrad/issues/35)) ([23bf909](https://github.com/zanussbaum/surfgrad/commit/23bf9095bfa7e39343420f52e221935c0a8c102b))
+
 ## [1.0.11](https://github.com/zanussbaum/surfgrad/compare/v1.0.10...v1.0.11) (2024-11-15)
 
 
