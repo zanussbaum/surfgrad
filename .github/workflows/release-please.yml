@@ -46,6 +46,11 @@ jobs:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
         if: ${{ steps.release.outputs.release_created }}
+
+      - name: Update package version
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm version ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }} --no-git-tag-version
+
       
       - name: Publish to NPM
         run: npm publish
