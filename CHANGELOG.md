@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.8](https://github.com/zanussbaum/surfgrad/compare/v1.0.7...v1.0.8) (2024-11-15)
+
+
+### Bug Fixes
+
+* install package lock ([#27](https://github.com/zanussbaum/surfgrad/issues/27)) ([7b7d319](https://github.com/zanussbaum/surfgrad/commit/7b7d319a8f918d8651011756e0c6cff5459222ae))
+
 ## [1.0.7](https://github.com/zanussbaum/surfgrad/compare/v1.0.6...v1.0.7) (2024-11-15)
 
 
