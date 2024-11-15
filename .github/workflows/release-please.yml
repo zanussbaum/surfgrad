@@ -26,20 +26,6 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
         if: ${{ steps.release.outputs.release_created }}
 
-      # Generate package-lock.json first
-      - name: Generate package-lock.json
-        if: ${{ steps.release.outputs.release_created }}
-        run: npm install --package-lock-only
-
-      # Now npm ci should work
-      - name: Install dependencies
-        if: ${{ steps.release.outputs.release_created }}
-        run: npm ci
-
-      - name: Build
-        if: ${{ steps.release.outputs.release_created }}
-        run: npm run build
-
       # Add Node.js setup with registry configuration
       - uses: actions/setup-node@v4
         with:
@@ -47,11 +33,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
         if: ${{ steps.release.outputs.release_created }}
 
-      - name: Update package version
+      # Now npm ci should work
+      - name: Install dependencies
         if: ${{ steps.release.outputs.release_created }}
-        run: npm version ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }} --no-git-tag-version
+        run: npm ci
 
-      
       - name: Publish to NPM
         run: npm publish
         env:
