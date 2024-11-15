@@ -27,8 +27,19 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
         if: ${{ steps.release.outputs.release_created }}
 
-      - run: npm ci
-      - run: npm run build
+      # Generate package-lock.json first
+      - name: Generate package-lock.json
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm install --package-lock-only
+
+      # Now npm ci should work
+      - name: Install dependencies
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm ci
+
+      - name: Build
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm run build
       
       - name: Publish to NPM
         run: npm publish
