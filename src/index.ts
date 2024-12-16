@@ -11,3 +11,4 @@ export * from "./autograd/function.js";
 export * from "./layers/module.js";
 export * from "./layers/embedding.js";
 export * from "./layers/linear.js";
+export * from "./ops/div.js";

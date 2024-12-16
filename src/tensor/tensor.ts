@@ -6,6 +6,7 @@ import { Log2 } from "../ops/log2.js";
 import { ReLU } from "../ops/relu.js";
 import { Exp2 } from "../ops/exp2.js";
 import { Ln } from "../ops/ln.js";
+import { Div } from "../ops/div.js";
 
 import { AutogradFunction } from "../autograd/function.js";
 
@@ -83,6 +84,11 @@ export class Tensor {
     const mulOp = await Mul.create();
 
     return mulOp.forward(this, tensor);
+  }
+
+  async div(tensor: Tensor): Promise<[Tensor, number]> {
+    const divOp = await Div.create();
+    return divOp.forward(this, tensor);
   }
 
   async matmul(tensor: Tensor) {
