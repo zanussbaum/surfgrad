@@ -10,3 +10,4 @@ export * from "./ops/relu.js";
 export * from "./autograd/function.js";
 export * from "./layers/module.js";
 export * from "./layers/embedding.js";
+export * from "./layers/linear.js";
