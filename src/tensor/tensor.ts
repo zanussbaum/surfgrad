@@ -114,11 +114,9 @@ export class Tensor {
     // Convert indices to one-hot
     const oneHot = new Float32Array(indices.shape[0] * this.shape[0]).fill(0);
     for (let i = 0; i < indices.shape[0]; i++) {
-      let index = indices.data[i] + i * this.shape[0];
+      const index = indices.data[i] + i * this.shape[0];
       // set one hot value for the whole vector
-      console.log("before setting one hot", oneHot.toString(), "at index", index);
       oneHot.fill(1, index, index + 1);
-      console.log("after setting one hot", oneHot.toString(), "at index", index);
     }
 
     const oneHotTensor = new Tensor(oneHot, [indices.shape[0], this.shape[0]], indices.requires_grad);
