@@ -86,6 +86,92 @@ export class Tensor {
     return mulOp.forward(this, tensor);
   }
 
+  async sub(tensor: Tensor) {
+    const negOne = Tensor.full(tensor.shape, -1, false);
+    const [negTensor] = await tensor.mul(negOne);
+    return this.add(negTensor);
+  }
+
+  async mean(dims: number[]): Promise<Tensor> {
+    // Calculate new shape after reduction
+    const shape = this.shape.slice();
+    const size = dims.reduce((acc, dim) => acc * shape[dim], 1);
+    
+    dims.sort((a, b) => b - a); // Sort in descending order to remove correctly
+    dims.forEach(dim => shape.splice(dim, 1));
+    if (shape.length === 0) shape.push(1);
+  
+    const result = new Float32Array(shape.reduce((a, b) => a * b, 1));
+    
+    // For 1D case
+    if (this.shape.length === 1 && dims.includes(0)) {
+      let sum = 0;
+      for (let i = 0; i < this.data.length; i++) {
+        sum += this.data[i];
+      }
+      result[0] = sum / size;
+      return new Tensor(result, shape, this.requires_grad);
+    }
+  
+    // For higher dimensions (keeping existing logic for 2D)
+    const stride = this.shape[1];
+    for (let i = 0; i < this.shape[0]; i++) {
+      let sum = 0;
+      for (let j = 0; j < stride; j++) {
+        sum += this.data[i * stride + j];
+      }
+      result[i] = sum / size;
+    }
+  
+    return new Tensor(result, shape, this.requires_grad);
+  }
+  
+  async variance(dims: number[]): Promise<Tensor> {
+    const mean = await this.mean(dims);
+    const shape = this.shape.slice();
+    const size = dims.reduce((acc, dim) => acc * shape[dim], 1);
+    
+    dims.sort((a, b) => b - a);
+    dims.forEach(dim => shape.splice(dim, 1));
+    if (shape.length === 0) shape.push(1);
+  
+    const result = new Float32Array(shape.reduce((a, b) => a * b, 1));
+    
+    // For 1D case
+    if (this.shape.length === 1 && dims.includes(0)) {
+      let sumSquaredDiff = 0;
+      const meanValue = mean.data[0];
+      for (let i = 0; i < this.data.length; i++) {
+        const diff = this.data[i] - meanValue;
+        sumSquaredDiff += diff * diff;
+      }
+      result[0] = sumSquaredDiff / size;
+      return new Tensor(result, shape, this.requires_grad);
+    }
+  
+    // For higher dimensions
+    const stride = this.shape[1];
+    for (let i = 0; i < this.shape[0]; i++) {
+      let sumSquaredDiff = 0;
+      const meanValue = mean.data[i];
+      for (let j = 0; j < stride; j++) {
+        const diff = this.data[i * stride + j] - meanValue;
+        sumSquaredDiff += diff * diff;
+      }
+      result[i] = sumSquaredDiff / size;
+    }
+  
+    return new Tensor(result, shape, this.requires_grad);
+  }
+  
+  async sqrt(): Promise<Tensor> {
+    const result = new Float32Array(this.data.length);
+    for (let i = 0; i < this.data.length; i++) {
+      result[i] = Math.sqrt(this.data[i]);
+    }
+    return new Tensor(result, this.shape.slice(), this.requires_grad);
+  }
+
   async div(tensor: Tensor): Promise<[Tensor, number]> {
     const divOp = await Div.create();
     return divOp.forward(this, tensor);
@@ -205,4 +291,5 @@ export class Tensor {
 
     return topo_order;
   }
+
 }
