@@ -8,3 +8,5 @@ export * from "./ops/log2.js";
 export * from "./ops/ln.js";
 export * from "./ops/relu.js";
 export * from "./autograd/function.js";
+export * from "./layers/module.js";
+export * from "./layers/embedding.js";

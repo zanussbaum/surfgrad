@@ -52,6 +52,16 @@ export class Tensor {
     return Tensor.full(tensor.shape, 0, tensor.requires_grad);
   }
 
+  static randn(shape: number[], requires_grad = false) {
+    const data = new Float32Array(shape.reduce((a, b) => a * b));
+
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    return new Tensor(data, shape, requires_grad);
+  }
+
   async add(tensor: Tensor) {
     const addOp = await Add.create();
 
@@ -100,16 +110,20 @@ export class Tensor {
     return reluOp.forward(this);
   }
 
-  // In Tensor class
   async gather(indices: Tensor): Promise<[Tensor, number]> {
     // Convert indices to one-hot
     const oneHot = new Float32Array(indices.shape[0] * this.shape[0]).fill(0);
     for (let i = 0; i < indices.shape[0]; i++) {
-        oneHot[i * this.shape[0] + indices.data[i]] = 1;
+      let index = indices.data[i] + i * this.shape[0];
+      // set one hot value for the whole vector
+      console.log("before setting one hot", oneHot.toString(), "at index", index);
+      oneHot.fill(1, index, index + 1);
+      console.log("after setting one hot", oneHot.toString(), "at index", index);
     }
+
     const oneHotTensor = new Tensor(oneHot, [indices.shape[0], this.shape[0]], indices.requires_grad);
-    
-    // Use existing matmul
+    console.log("oneHotTensor", oneHotTensor.data.toString());
+
     return oneHotTensor.matmul(this);
   }
 
