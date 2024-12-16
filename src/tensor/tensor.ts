@@ -62,6 +62,17 @@ export class Tensor {
     return new Tensor(data, shape, requires_grad);
   }
 
+  static broadcast(tensor: Tensor, size: number, requires_grad = false) {
+    const shape = [size, ...tensor.shape];
+    const data = new Float32Array(shape.reduce((a, b) => a * b));
+
+    for (let i = 0; i < data.length; i++) {
+      data[i] = tensor.data[i % tensor.shape.reduce((a, b) => a * b)];
+    }
+
+    return new Tensor(data, shape, requires_grad);
+  }
+
   async add(tensor: Tensor) {
     const addOp = await Add.create();
 

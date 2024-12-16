@@ -10,7 +10,12 @@ export class Add extends BinaryOp {
       if (b.shape.length === 1 && b.shape[0] === 1) {
         // Broadcast scalar
         b = Tensor.full(a.shape, b.data[0], b.requires_grad);
-      } else {
+      } 
+      else if (b.shape.length == 1 && b.shape[0] == a.shape[1]) {
+        b = Tensor.broadcast(b, a.shape[0], b.requires_grad);
+        console.log("broadcasted", b.data.toString());
+      }
+      else {
         throw new Error(
           `Incompatible shapes for Add: ${a.shape} and ${b.shape}`,
         );
