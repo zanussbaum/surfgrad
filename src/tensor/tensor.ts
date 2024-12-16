@@ -100,6 +100,19 @@ export class Tensor {
     return reluOp.forward(this);
   }
 
+  // In Tensor class
+  async gather(indices: Tensor): Promise<[Tensor, number]> {
+    // Convert indices to one-hot
+    const oneHot = new Float32Array(indices.shape[0] * this.shape[0]).fill(0);
+    for (let i = 0; i < indices.shape[0]; i++) {
+        oneHot[i * this.shape[0] + indices.data[i]] = 1;
+    }
+    const oneHotTensor = new Tensor(oneHot, [indices.shape[0], this.shape[0]], indices.requires_grad);
+    
+    // Use existing matmul
+    return oneHotTensor.matmul(this);
+  }
+
   transpose() {
     const [rows, cols] = this.shape;
     const transposedData = new Float32Array(this.data.length);
