@@ -68,6 +68,7 @@ declare global {
   interface Window {
     runEmbeddingTest: () => Promise<{
       inputIndices: number[];
+      embedding: { data: number[] };
       outputShape: number[];
       outputData: number[];
     }>;
