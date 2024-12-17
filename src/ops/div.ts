@@ -10,14 +10,32 @@ export class Div extends BinaryOp {
       if (b.shape.length === 1 && b.shape[0] === 1) {
         // Broadcast scalar
         b = Tensor.full(a.shape, b.data[0], b.requires_grad);
-      } else {
+      } 
+      else if (b.shape.length === 1 && b.shape[0] === a.shape[1]) {
+        // Broadcast [m] to [n, m]
+        b = Tensor.broadcast(b, a.shape[0], b.requires_grad);
+      }
+      else if (b.shape.length === 2 && b.shape[1] === 1) {
+        // Broadcast [n, 1] to [n, m]
+        const newShape = [b.shape[0], a.shape[1]];
+        console.log("Broadcasting [n,1] to shape:", newShape);
+        const newData = new Float32Array(newShape[0] * newShape[1]);
+        // Repeat the values across the second dimension
+        for (let i = 0; i < b.shape[0]; i++) {
+          for (let j = 0; j < a.shape[1]; j++) {
+            newData[i * a.shape[1] + j] = b.data[i];
+          }
+        }
+        b = new Tensor(newData, newShape, b.requires_grad);
+      }
+      else {
         throw new Error(
           `Incompatible shapes for Div: ${a.shape} and ${b.shape}`,
         );
       }
     }
     return b;
-  }
+}
 
   async backward(grad_output: Tensor): Promise<Tensor[]> {
     const [a, b] = this.inputs;

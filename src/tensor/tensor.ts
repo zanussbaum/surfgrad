@@ -87,6 +87,12 @@ export class Tensor {
   }
 
   async sub(tensor: Tensor) {
+    if (tensor.shape.length === 1 && this.shape.length === 2) {
+      // Broadcasting [n] to [m, n]
+      const newShape = [this.shape[0], tensor.shape[0]];
+      tensor = Tensor.full(newShape, tensor.data[0], tensor.requires_grad);
+    }
+    
     const negOne = Tensor.full(tensor.shape, -1, false);
     const [negTensor] = await tensor.mul(negOne);
     return this.add(negTensor);
