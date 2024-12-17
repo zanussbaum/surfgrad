@@ -229,7 +229,6 @@ export class Tensor {
     }
 
     const oneHotTensor = new Tensor(oneHot, [indices.shape[0], this.shape[0]], indices.requires_grad);
-    console.log("oneHotTensor", oneHotTensor.data.toString());
 
     return oneHotTensor.matmul(this);
   }
