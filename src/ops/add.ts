@@ -10,12 +10,10 @@ export class Add extends BinaryOp {
       if (b.shape.length === 1 && b.shape[0] === 1) {
         // Broadcast scalar
         b = Tensor.full(a.shape, b.data[0], b.requires_grad);
-      } 
-      else if (b.shape.length === 1 && b.shape[0] === a.shape[1]) {
+      } else if (b.shape.length === 1 && b.shape[0] === a.shape[1]) {
         // Broadcast [m] to [n, m]
         b = Tensor.broadcast(b, a.shape[0], b.requires_grad);
-      }
-      else if (b.shape.length === 2 && b.shape[1] === 1) {
+      } else if (b.shape.length === 2 && b.shape[1] === 1) {
         // Broadcast [n, 1] to [n, m]
         const newShape = [b.shape[0], a.shape[1]];
         console.log("Broadcasting [n,1] to shape:", newShape);
@@ -26,8 +24,11 @@ export class Add extends BinaryOp {
           }
         }
         b = new Tensor(newData, newShape, b.requires_grad);
-      }
-      else if (b.shape.length === 2 && b.shape[0] === 1 && b.shape[1] === a.shape[1]) {
+      } else if (
+        b.shape.length === 2 &&
+        b.shape[0] === 1 &&
+        b.shape[1] === a.shape[1]
+      ) {
         // Broadcast [1, m] to [n, m]
         const newShape = [a.shape[0], b.shape[1]];
         console.log("Broadcasting [1,m] to shape:", newShape);
@@ -38,8 +39,7 @@ export class Add extends BinaryOp {
           }
         }
         b = new Tensor(newData, newShape, b.requires_grad);
-      }
-      else {
+      } else {
         throw new Error(
           `Incompatible shapes for Add: ${a.shape} and ${b.shape}`,
         );

@@ -13,11 +13,11 @@ test("Embedding forward pass with known values", async ({ page }) => {
       // @ts-expect-error ignore error for tests
       import("/dist/bundle.js").then((module) => {
         const { Tensor, Embedding } = module;
-        
+
         window.runEmbeddingTest = async function () {
           const vocabSize = 128;
           const embeddingDim = 2; // Using small dim for easy verification
-          
+
           // Create embedding layer
           const embedding = new Embedding(vocabSize, embeddingDim);
           console.log(embedding);
@@ -26,7 +26,7 @@ test("Embedding forward pass with known values", async ({ page }) => {
           const inputIndices = new Tensor(
             new Float32Array([1, 5, 10]), // Sample indices
             [3], // Sequence length of 3
-            false
+            false,
           );
 
           // Forward pass
@@ -36,7 +36,7 @@ test("Embedding forward pass with known values", async ({ page }) => {
             inputIndices: Array.from(inputIndices.data),
             embedding: embedding.embedding,
             outputShape: embeddings.shape,
-            outputData: Array.from(embeddings.data)
+            outputData: Array.from(embeddings.data),
           };
         };
         resolve();
@@ -48,17 +48,17 @@ test("Embedding forward pass with known values", async ({ page }) => {
   const result = await page.evaluate(() => window.runEmbeddingTest());
 
   // Validate shapes
-  expect(result.outputShape).toEqual([3, 2]);  // Sequence length x Embedding dim
+  expect(result.outputShape).toEqual([3, 2]); // Sequence length x Embedding dim
 
   const expectedOutput = [
     result.embedding.data[2],
     result.embedding.data[3],
     result.embedding.data[10],
-    result.embedding.data[11] ,
+    result.embedding.data[11],
     result.embedding.data[20],
-    result.embedding.data[21]
+    result.embedding.data[21],
   ];
-  
+
   expect(result.outputData).toEqual(expectedOutput);
 
   await page.close();

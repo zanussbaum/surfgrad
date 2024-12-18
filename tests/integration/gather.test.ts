@@ -18,20 +18,19 @@ test("Gather forward and backward pass", async ({ page }) => {
           // Create a simple embedding matrix with 3 embeddings of dimension 2
           const embeddings = new Tensor(
             new Float32Array([
-              1.0, 2.0,  // embedding 0
-              3.0, 4.0,  // embedding 1
-              5.0, 6.0   // embedding 2
+              1.0,
+              2.0, // embedding 0
+              3.0,
+              4.0, // embedding 1
+              5.0,
+              6.0, // embedding 2
             ]),
             [3, 2],
-            true
+            true,
           );
 
           // Look up embeddings at indices 1, 0 (second embedding, then first)
-          const indices = new Tensor(
-            new Float32Array([1, 0]),
-            [2, 1],
-            false
-          );
+          const indices = new Tensor(new Float32Array([1, 0]), [2, 1], false);
 
           // Forward pass - gather embeddings
           const [output] = await embeddings.gather(indices);
@@ -55,23 +54,32 @@ test("Gather forward and backward pass", async ({ page }) => {
   // @ts-expect-error ignore error for tests
   const result = await page.evaluate(() => window.runGatherTest());
 
-  expect(result.output.shape).toEqual([2, 2]);  // 2 selected embeddings of dimension 2
-  expect(result.grad_embeddings.shape).toEqual([3, 2]);  // Same shape as input embeddings
+  expect(result.output.shape).toEqual([2, 2]); // 2 selected embeddings of dimension 2
+  expect(result.grad_embeddings.shape).toEqual([3, 2]); // Same shape as input embeddings
 
   // Forward pass assertions - should get embeddings at indices 1 and 0
   const outputData = new Float32Array(Object.values(result.output.data));
-  expect(outputData).toEqual(new Float32Array([
-    3.0, 4.0,  // embedding at index 1
-    1.0, 2.0   // embedding at index 0
-  ]));
+  expect(outputData).toEqual(
+    new Float32Array([
+      3.0,
+      4.0, // embedding at index 1
+      1.0,
+      2.0, // embedding at index 0
+    ]),
+  );
 
   // Backward pass assertions - gradient should accumulate at the selected indices
   const gradData = new Float32Array(Object.values(result.grad_embeddings.data));
-  expect(gradData).toEqual(new Float32Array([
-    1.0, 1.0,  // gradient for embedding 0 (selected second)
-    1.0, 1.0,  // gradient for embedding 1 (selected first)
-    0.0, 0.0   // gradient for embedding 2 (not selected)
-  ]));
+  expect(gradData).toEqual(
+    new Float32Array([
+      1.0,
+      1.0, // gradient for embedding 0 (selected second)
+      1.0,
+      1.0, // gradient for embedding 1 (selected first)
+      0.0,
+      0.0, // gradient for embedding 2 (not selected)
+    ]),
+  );
 
   await page.close();
 });

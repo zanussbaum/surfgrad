@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-
 test("Elementwise scalar/broadcasted division forward and backward pass", async ({
   page,
 }) => {
