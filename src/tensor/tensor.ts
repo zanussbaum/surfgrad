@@ -297,4 +297,58 @@ export class Tensor {
     return topo_order;
   }
 
+  async concat(tensor: Tensor, axis: number): Promise<Tensor> {
+    // Validate axis
+    if (axis < 0 || axis >= this.shape.length) {
+      throw new Error(`Invalid axis ${axis}. Must be between 0 and ${this.shape.length - 1}`);
+    }
+
+    // For axis 0 concatenation, all other dimensions must match exactly
+    if (axis === 0) {
+      // For 1D tensors, they must have the same shape
+      if (this.shape.length === 1 && this.shape[0] !== tensor.shape[0]) {
+        throw new Error(`Shape mismatch: tensors have different shapes at non-concatenating dimensions`);
+      }
+    }
+
+    // For other axes, validate shapes - all dimensions except concat axis must match
+    for (let i = 0; i < this.shape.length; i++) {
+      if (i !== axis && this.shape[i] !== tensor.shape[i]) {
+        throw new Error(`Shape mismatch: tensors have different shapes at non-concatenating dimensions`);
+      }
+    }
+
+    // Calculate new shape
+    const newShape = [...this.shape];
+    newShape[axis] += tensor.shape[axis];
+
+    // Create new data array
+    const newData = new Float32Array(newShape.reduce((a, b) => a * b));
+
+    // Calculate strides for both tensors
+    const stride = this.shape[axis];
+    const preAxisSize = this.shape.slice(0, axis).reduce((a, b) => a * b, 1);
+    const postAxisSize = this.shape.slice(axis + 1).reduce((a, b) => a * b, 1);
+
+    // Copy data from both tensors
+    for (let i = 0; i < preAxisSize; i++) {
+      for (let j = 0; j < postAxisSize; j++) {
+        // Copy from first tensor
+        for (let k = 0; k < this.shape[axis]; k++) {
+          const srcIdx = i * stride * postAxisSize + k * postAxisSize + j;
+          const dstIdx = i * (stride + tensor.shape[axis]) * postAxisSize + k * postAxisSize + j;
+          newData[dstIdx] = this.data[srcIdx];
+        }
+        // Copy from second tensor
+        for (let k = 0; k < tensor.shape[axis]; k++) {
+          const srcIdx = i * tensor.shape[axis] * postAxisSize + k * postAxisSize + j;
+          const dstIdx = i * (stride + tensor.shape[axis]) * postAxisSize + (k + stride) * postAxisSize + j;
+          newData[dstIdx] = tensor.data[srcIdx];
+        }
+      }
+    }
+
+    return new Tensor(newData, newShape, this.requires_grad || tensor.requires_grad);
+  }
+
 }

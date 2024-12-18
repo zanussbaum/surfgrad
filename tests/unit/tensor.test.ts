@@ -102,4 +102,59 @@ describe("Tensor", () => {
       );
     });
   });
+
+  describe("concat", () => {
+    it("should concatenate 1D tensors along axis 0", async () => {
+      const t1 = new Tensor(new Float32Array([1, 2, 3]), [3]);
+      const t2 = new Tensor(new Float32Array([4, 5, 6]), [3]);
+      
+      const result = await t1.concat(t2, 0);
+      
+      expect(result.shape).toEqual([6]);
+      expect(Array.from(result.data)).toEqual([1, 2, 3, 4, 5, 6]);
+    });
+
+    it("should concatenate 2D tensors along axis 0", async () => {
+      const t1 = new Tensor(new Float32Array([1, 2, 3, 4]), [2, 2]);
+      const t2 = new Tensor(new Float32Array([5, 6, 7, 8]), [2, 2]);
+      
+      const result = await t1.concat(t2, 0);
+      
+      expect(result.shape).toEqual([4, 2]);
+      expect(Array.from(result.data)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    });
+
+    it("should concatenate 2D tensors along axis 1", async () => {
+      const t1 = new Tensor(new Float32Array([1, 2, 3, 4]), [2, 2]);
+      const t2 = new Tensor(new Float32Array([5, 6, 7, 8]), [2, 2]);
+      
+      const result = await t1.concat(t2, 1);
+      
+      expect(result.shape).toEqual([2, 4]);
+      expect(Array.from(result.data)).toEqual([1, 2, 5, 6, 3, 4, 7, 8]);
+    });
+
+    it("should throw error for invalid axis", async () => {
+      const t1 = new Tensor(new Float32Array([1, 2]), [2]);
+      const t2 = new Tensor(new Float32Array([3, 4]), [2]);
+      
+      await expect(t1.concat(t2, 1)).rejects.toThrow("Invalid axis");
+    });
+
+    it("should throw error for shape mismatch", async () => {
+      const t1 = new Tensor(new Float32Array([1, 2]), [2]);
+      const t2 = new Tensor(new Float32Array([3, 4, 5]), [3]);
+      
+      await expect(t1.concat(t2, 0)).rejects.toThrow("Shape mismatch");
+    });
+
+    it("should preserve requires_grad", async () => {
+      const t1 = new Tensor(new Float32Array([1, 2]), [2], true);
+      const t2 = new Tensor(new Float32Array([3, 4]), [2], false);
+      
+      const result = await t1.concat(t2, 0);
+      
+      expect(result.requires_grad).toBe(true);
+    });
+  });
 });
