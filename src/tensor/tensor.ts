@@ -389,7 +389,6 @@ export class Tensor {
     const slices = args.map((arg, dim) =>
       this.normalizeSlice(arg, this.shape[dim]),
     );
-    console.log("slices:", slices);
 
     // Calculate output shape and stride info
     const { outputShape, isReducedDim } = this.calculateOutputShape(
