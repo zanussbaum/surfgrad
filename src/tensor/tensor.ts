@@ -142,11 +142,25 @@ export class Tensor {
   async sum(dims: number[]): Promise<Tensor> {
     const shape = this.shape.slice();
 
-    dims.sort((a, b) => b - a); // Sort in descending order to remove correctly
+    // Sort dimensions in descending order for correct removal
+    dims.sort((a, b) => b - a);
     dims.forEach((dim) => shape.splice(dim, 1));
     if (shape.length === 0) shape.push(1);
 
     const result = new Float32Array(shape.reduce((a, b) => a * b, 1));
+
+    // Special case: if we're summing all dimensions, just sum everything
+    if (
+      dims.length === this.shape.length ||
+      (this.shape.length === 2 && dims.includes(0) && dims.includes(1))
+    ) {
+      let sum = 0;
+      for (let i = 0; i < this.data.length; i++) {
+        sum += this.data[i];
+      }
+      result[0] = sum;
+      return new Tensor(result, [1], this.requires_grad);
+    }
 
     // For 1D case
     if (this.shape.length === 1 && dims.includes(0)) {
@@ -158,14 +172,31 @@ export class Tensor {
       return new Tensor(result, shape, this.requires_grad);
     }
 
-    // For higher dimensions (keeping existing logic for 2D)
-    const stride = this.shape[1];
-    for (let i = 0; i < this.shape[0]; i++) {
-      let sum = 0;
-      for (let j = 0; j < stride; j++) {
-        sum += this.data[i * stride + j];
+    // For 2D case
+    if (this.shape.length === 2) {
+      if (dims.includes(0)) {
+        // Sum along first dimension (vertically)
+        const cols = this.shape[1];
+        const rows = this.shape[0];
+        for (let j = 0; j < cols; j++) {
+          let sum = 0;
+          for (let i = 0; i < rows; i++) {
+            sum += this.data[i * cols + j];
+          }
+          result[j] = sum;
+        }
+      } else if (dims.includes(1)) {
+        // Sum along second dimension (horizontally)
+        const cols = this.shape[1];
+        const rows = this.shape[0];
+        for (let i = 0; i < rows; i++) {
+          let sum = 0;
+          for (let j = 0; j < cols; j++) {
+            sum += this.data[i * cols + j];
+          }
+          result[i] = sum;
+        }
       }
-      result[i] = sum;
     }
 
     return new Tensor(result, shape, this.requires_grad);
@@ -177,6 +208,13 @@ export class Tensor {
       result[i] = this.data[i] ** p;
     }
     return [new Tensor(result, this.shape.slice(), this.requires_grad)];
+  }
+
+  async norm(p: number = 2, dim: number = 0): Promise<[Tensor]> {
+    const [norm] = await this.pow(p);
+    const sumNorm = await norm.sum([dim]);
+    const [rootNorm] = await sumNorm.pow(1 / p);
+    return [rootNorm];
   }
 
   async variance(dims: number[]): Promise<Tensor> {

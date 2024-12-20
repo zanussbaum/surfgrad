@@ -317,4 +317,131 @@ describe("Tensor", () => {
       expect(Array.from(result.data)).toEqual([1, 4, 9, 16]);
     });
   });
+  describe("sum", () => {
+    it("should sum 1D tensor correctly", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4]), [4]);
+      const result = await tensor.sum([0]);
+
+      expect(result.shape).toEqual([1]);
+      expect(Array.from(result.data)[0]).toBe(10); // 1 + 2 + 3 + 4
+    });
+
+    it("should sum 2D tensor along first dimension", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4, 5, 6]), [2, 3]);
+      const result = await tensor.sum([0]);
+
+      expect(result.shape).toEqual([3]);
+      expect(Array.from(result.data)).toEqual([5, 7, 9]); // [1+4, 2+5, 3+6]
+    });
+
+    it("should sum 2D tensor along second dimension", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4, 5, 6]), [2, 3]);
+      const result = await tensor.sum([1]);
+
+      expect(result.shape).toEqual([2]);
+      expect(Array.from(result.data)).toEqual([6, 15]); // [1+2+3, 4+5+6]
+    });
+
+    it("should preserve requires_grad", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4]), [4], true);
+      const result = await tensor.sum([0]);
+
+      expect(result.requires_grad).toBe(true);
+    });
+
+    it("should handle tensor with all zeros", async () => {
+      const tensor = new Tensor(new Float32Array([0, 0, 0, 0]), [2, 2]);
+      const result = await tensor.sum([1]);
+
+      expect(result.shape).toEqual([2]);
+      expect(Array.from(result.data)).toEqual([0, 0]);
+    });
+
+    it("should handle single element tensor", async () => {
+      const tensor = new Tensor(new Float32Array([5]), [1]);
+      const result = await tensor.sum([0]);
+
+      expect(result.shape).toEqual([1]);
+      expect(Array.from(result.data)[0]).toBe(5);
+    });
+
+    it("should handle summing along multiple dimensions", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4, 5, 6]), [2, 3]);
+      const result = await tensor.sum([0, 1]);
+
+      expect(result.shape).toEqual([1]);
+      expect(Array.from(result.data)[0]).toBe(21); // sum of all elements
+    });
+
+    it("should maintain correct shape after summing", async () => {
+      const tensor = new Tensor(
+        new Float32Array([1, 2, 3, 4, 5, 6, 7, 8, 9]),
+        [3, 3],
+      );
+      const result = await tensor.sum([0]);
+
+      expect(result.shape).toEqual([3]);
+      expect(Array.from(result.data)).toEqual([12, 15, 18]); // column sums
+    });
+  });
+
+  it("should default requires_grad to false", () => {
+    const data = new Float32Array([1, 2, 3, 4]);
+    const shape = [2, 2];
+    const tensor = new Tensor(data, shape);
+
+    expect(tensor.requires_grad).toBe(false);
+  });
+
+  it("should throw an error if the number of elements in data and shape are different", () => {
+    const data = new Float32Array([1, 2, 3]);
+    const shape = [2, 2];
+
+    expect(() => new Tensor(data, shape)).toThrow("Incompatible shapes");
+  });
+
+  describe("norm", () => {
+    it("should calculate Euclidean norm along default dimension", async () => {
+      const tensor = new Tensor(new Float32Array([3, 4]), [2]);
+      const [result] = await tensor.norm();
+
+      // Should be sqrt(3^2 + 4^2) = 5
+      expect(result.shape).toEqual([1]);
+      expect(Array.from(result.data)[0]).toBeCloseTo(5);
+    });
+
+    it("should handle 2D tensor Euclidean norm", async () => {
+      const tensor = new Tensor(new Float32Array([3, 4, 6, 8]), [2, 2]);
+      const [result] = await tensor.norm();
+
+      console.log("result:", result.data.toString());
+
+      // For dim=0: sqrt(3^2 + 6^2) and sqrt(4^2 + 8^2)
+      expect(result.shape).toEqual([2]);
+      expect(Array.from(result.data)[0]).toBeCloseTo(6.708203932499369); // sqrt(45)
+      expect(Array.from(result.data)[1]).toBeCloseTo(8.94427190999916); // sqrt(80)
+    });
+
+    it("should preserve requires_grad", async () => {
+      const tensor = new Tensor(new Float32Array([3, 4]), [2], true);
+      const [result] = await tensor.norm();
+
+      expect(result.requires_grad).toBe(true);
+    });
+
+    it("should handle tensor with all zeros", async () => {
+      const tensor = new Tensor(new Float32Array([0, 0, 0, 0]), [2, 2]);
+      const [result] = await tensor.norm();
+
+      expect(Array.from(result.data)).toEqual([0, 0]);
+    });
+
+    it("should handle 1D tensor with single element", async () => {
+      const tensor = new Tensor(new Float32Array([5]), [1]);
+      const [result] = await tensor.norm();
+
+      expect(result.shape).toEqual([1]);
+      expect(Array.from(result.data)[0]).toBe(5);
+    });
+  });
 });
