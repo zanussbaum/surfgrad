@@ -85,6 +85,7 @@ export class MultiHeadAttention extends Module {
     const valueHeads = await this.reshapeToHeads(value);
 
     // Compute attention for each head
+    // this will be slow, we should create bmm
     const headOutputs: Tensor[] = [];
     for (let i = 0; i < this.num_heads; i++) {
       const [headOutput] = await this.scaledDotProductAttention(
