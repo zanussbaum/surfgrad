@@ -15,5 +15,5 @@ export abstract class Module {
    * @param inputs - Input tensor(s) to the layer
    * @returns Output tensor(s) from the layer
    */
-  abstract forward(...inputs: [Tensor]): Promise<[Tensor]>;
+  abstract forward(...args: Tensor[]): Promise<[Tensor]>;
 }
