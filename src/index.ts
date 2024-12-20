@@ -12,4 +12,5 @@ export * from "./layers/module.js";
 export * from "./layers/embedding.js";
 export * from "./layers/linear.js";
 export * from "./layers/norm.js";
+export * from "./layers/mlp.js";
 export * from "./ops/div.js";
