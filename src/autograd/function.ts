@@ -155,21 +155,22 @@ export abstract class BinaryOp extends AutogradFunction {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, bindGroup);
 
+    // TODO: set these as overrides in the layers/ops level since the kernels are different
     const WORKGROUP_SIZE = 16;
     const TILE_SIZE = 8;
-    const workgropuA = Math.ceil(a.shape[0] / (TILE_SIZE * WORKGROUP_SIZE));
-    const workgropuB = Math.ceil(b.shape[1] / (TILE_SIZE * WORKGROUP_SIZE));
+    const workgroupA = Math.ceil(a.shape[0] / (TILE_SIZE * WORKGROUP_SIZE));
+    const workgroupB = Math.ceil(b.shape[1] / (TILE_SIZE * WORKGROUP_SIZE));
     console.log(
       "a.shape[0]:",
       a.shape[0],
       "b.shape[1]:",
       b.shape[1],
       "launching workgroups",
-      workgropuA,
+      workgroupA,
       ",",
-      workgropuB,
+      workgroupB,
     );
-    pass.dispatchWorkgroups(workgropuA, workgropuB);
+    pass.dispatchWorkgroups(workgroupA, workgroupB);
     pass.end();
 
     const stagingBuffer = this.device.createBuffer({

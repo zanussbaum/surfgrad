@@ -7,4 +7,12 @@ export * from "./ops/exp2.js";
 export * from "./ops/log2.js";
 export * from "./ops/ln.js";
 export * from "./ops/relu.js";
+export * from "./ops/div.js";
 export * from "./autograd/function.js";
+export * from "./layers/module.js";
+export * from "./layers/embedding.js";
+export * from "./layers/linear.js";
+export * from "./layers/norm.js";
+export * from "./layers/mlp.js";
+export * from "./layers/attention.js";
+export * from "./model/nomic_embed.js"
