@@ -263,4 +263,58 @@ describe("Tensor", () => {
       ]);
     });
   });
+  describe("pow", () => {
+    it("should correctly square a tensor (power of 2)", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4]), [2, 2]);
+      const [result] = await tensor.pow(2);
+
+      expect(result.shape).toEqual([2, 2]);
+      expect(Array.from(result.data)).toEqual([1, 4, 9, 16]);
+    });
+
+    it("should correctly calculate square root (power of 0.5)", async () => {
+      const tensor = new Tensor(new Float32Array([1, 4, 9, 16]), [2, 2]);
+      const [result] = await tensor.pow(0.5);
+
+      expect(result.shape).toEqual([2, 2]);
+      expect(Array.from(result.data)).toEqual([1, 2, 3, 4]);
+    });
+
+    it("should handle negative numbers with even powers", async () => {
+      const tensor = new Tensor(new Float32Array([-2, -3, 2, 3]), [2, 2]);
+      const [result] = await tensor.pow(2);
+
+      expect(result.shape).toEqual([2, 2]);
+      expect(Array.from(result.data)).toEqual([4, 9, 4, 9]);
+    });
+
+    it("should preserve requires_grad", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4]), [2, 2], true);
+      const [result] = await tensor.pow(2);
+
+      expect(result.requires_grad).toBe(true);
+    });
+
+    it("should handle power of 1 (identity)", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4]), [2, 2]);
+      const [result] = await tensor.pow(1);
+
+      expect(Array.from(result.data)).toEqual([1, 2, 3, 4]);
+    });
+
+    it("should handle power of 0 (all ones)", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4]), [2, 2]);
+      const [result] = await tensor.pow(0);
+
+      expect(Array.from(result.data)).toEqual([1, 1, 1, 1]);
+    });
+
+    it("should maintain shape for 1D tensors", async () => {
+      const tensor = new Tensor(new Float32Array([1, 2, 3, 4]), [4]);
+      const [result] = await tensor.pow(2);
+
+      expect(result.shape).toEqual([4]);
+      expect(Array.from(result.data)).toEqual([1, 4, 9, 16]);
+    });
+  });
 });

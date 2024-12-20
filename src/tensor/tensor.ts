@@ -171,6 +171,14 @@ export class Tensor {
     return new Tensor(result, shape, this.requires_grad);
   }
 
+  async pow(p: number): Promise<[Tensor]> {
+    const result = new Float32Array(this.data.length);
+    for (let i = 0; i < this.data.length; i++) {
+      result[i] = this.data[i] ** p;
+    }
+    return [new Tensor(result, this.shape.slice(), this.requires_grad)];
+  }
+
   async variance(dims: number[]): Promise<Tensor> {
     const mean = await this.mean(dims);
     const shape = this.shape.slice();
