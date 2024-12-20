@@ -19,7 +19,6 @@ test("MultiHeadAttention forward pass with known values", async ({ page }) => {
           const seqLength = 2;
           const hiddenDim = 4;
           const numHeads = 2;
-          const headDim = hiddenDim / numHeads;
 
           const input = new Tensor(
             new Float32Array([
