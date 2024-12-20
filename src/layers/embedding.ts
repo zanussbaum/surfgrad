@@ -10,7 +10,7 @@ export class Embedding extends Module {
 
     this.vocab_size = vocab_size;
     this.emb_dim = emb_dim;
-    this.embedding = Tensor.randn([vocab_size, emb_dim], true);
+    this.embedding = Tensor.normal([vocab_size, emb_dim], true, 0.02);
   }
 
   async forward(...inputs: [Tensor]): Promise<[Tensor]> {

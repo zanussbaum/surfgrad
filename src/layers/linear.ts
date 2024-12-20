@@ -7,8 +7,8 @@ export class Linear extends Module {
 
   constructor(inputSize: number, outputSize: number) {
     super("linear");
-    this.weight = Tensor.randn([inputSize, outputSize], true);
-    this.bias = Tensor.randn([outputSize], true);
+    this.weight = Tensor.normal([inputSize, outputSize], true, 0.02);
+    this.bias = Tensor.full([outputSize], 0, true);
   }
 
   async forward(...inputs: [Tensor]): Promise<[Tensor]> {

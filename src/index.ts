@@ -15,3 +15,4 @@ export * from "./layers/linear.js";
 export * from "./layers/norm.js";
 export * from "./layers/mlp.js";
 export * from "./layers/attention.js";
+export * from "./model/nomic_embed.js"

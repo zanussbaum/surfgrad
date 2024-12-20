@@ -45,6 +45,11 @@ export class Add extends BinaryOp {
         );
       }
     }
+    console.log("add a.shape:", a.shape);
+    console.log("a.data:", a.data.toString());
+    console.log("add broadcasted b.shape:", b.shape);
+    console.log("b.data:", b.data.toString());
+
     return b;
   }
 

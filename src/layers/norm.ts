@@ -21,18 +21,14 @@ export class LayerNorm extends Module {
 
     // Calculate mean and reshape for broadcasting
     const mean = await x.mean(reduction_dims);
+    console.log("mean.data", mean.data.toString());
     mean.shape = [mean.shape[0], 1]; // [2, 1]
 
     const variance = await x.variance(reduction_dims);
     variance.shape = [variance.shape[0], 1]; // [2, 1]
 
-    console.log("x shape:", x.shape); // [2, 3]
-    console.log("mean shape:", mean.shape); // [2, 1]
-    console.log("variance shape:", variance.shape); // [2, 1]
-    console.log("gamma shape:", this.gamma.shape); // [1, 3]
-    console.log("beta shape:", this.beta.shape); // [1, 3]
-
     const [numerator] = await x.sub(mean); // [2, 3]
+    console.log("numerator.data", numerator.data.toString());
     const [denominator] = await variance.add(this.eps);
     const sqrtDenom = await denominator.sqrt();
     const [normalized] = await numerator.div(sqrtDenom);

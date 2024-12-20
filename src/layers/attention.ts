@@ -51,8 +51,11 @@ export class MultiHeadAttention extends Module {
   ): Promise<[Tensor, number]> {
     // Scale factor is 1/sqrt(head_dim)
     const scale = 1 / Math.sqrt(this.head_dim);
-    const scaleTensor = Tensor.full(query.shape, scale, false);
-
+    const scaleTensor = Tensor.full(
+      [query.shape[0], key.shape[0]],
+      scale,
+      false,
+    );
     // Compute attention scores
     const [scores] = await query.matmul(key.transpose());
     const [scaledScores] = await scores.mul(scaleTensor);

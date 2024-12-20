@@ -70,6 +70,20 @@ export class Tensor {
     return new Tensor(data, shape, requires_grad);
   }
 
+  static normal(
+    shape: number[],
+    requires_grad = false,
+    initializer_range = 0.01,
+  ) {
+    const data = new Float32Array(shape.reduce((a, b) => a * b));
+
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random() * 2 * initializer_range - initializer_range;
+    }
+
+    return new Tensor(data, shape, requires_grad);
+  }
+
   static broadcast(tensor: Tensor, size: number, requires_grad = false) {
     const shape = [size, ...tensor.shape];
     const data = new Float32Array(shape.reduce((a, b) => a * b));
@@ -102,6 +116,7 @@ export class Tensor {
 
     const negOne = Tensor.full(tensor.shape, -1, false);
     const [negTensor] = await tensor.mul(negOne);
+    console.log("this.shape", this.shape);
     return this.add(negTensor);
   }
 
@@ -305,21 +320,27 @@ export class Tensor {
   }
 
   async gather(indices: Tensor): Promise<[Tensor, number]> {
-    // Convert indices to one-hot
-    const oneHot = new Float32Array(indices.shape[0] * this.shape[0]).fill(0);
-    for (let i = 0; i < indices.shape[0]; i++) {
-      const index = indices.data[i] + i * this.shape[0];
-      // set one hot value for the whole vector
-      oneHot.fill(1, index, index + 1);
+    // For input shape [batch_size] and embedding matrix [vocab_size, embedding_dim]
+    // We want output shape [batch_size, embedding_dim]
+    const batchSize = indices.shape[0];
+    const embeddingDim = this.shape[1];
+    const result = new Float32Array(batchSize * embeddingDim);
+
+    // For each item in the batch
+    for (let i = 0; i < batchSize; i++) {
+      const tokenId = indices.data[i];
+      // Copy the entire embedding vector for this token
+      const sourceOffset = tokenId * embeddingDim;
+      const targetOffset = i * embeddingDim;
+      for (let j = 0; j < embeddingDim; j++) {
+        result[targetOffset + j] = this.data[sourceOffset + j];
+      }
     }
 
-    const oneHotTensor = new Tensor(
-      oneHot,
-      [indices.shape[0], this.shape[0]],
-      indices.requires_grad,
-    );
-
-    return oneHotTensor.matmul(this);
+    return [
+      new Tensor(result, [batchSize, embeddingDim], indices.requires_grad),
+      -1,
+    ];
   }
 
   transpose() {
