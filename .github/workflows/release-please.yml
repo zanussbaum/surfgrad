@@ -38,6 +38,10 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         run: npm ci
 
+      - name: Build project
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm run build
+
       - name: Publish to NPM
         run: npm publish
         env:
