@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.13](https://github.com/zanussbaum/surfgrad/compare/v1.0.12...v1.0.13) (2025-05-24)
+
+
+### Bug Fixes
+
+* ensure dist folder is built before npm publish ([#39](https://github.com/zanussbaum/surfgrad/issues/39)) ([2d18d4c](https://github.com/zanussbaum/surfgrad/commit/2d18d4c2f9c02371409ca154d87e4a9765ada55b))
+
 ## [1.0.12](https://github.com/zanussbaum/surfgrad/compare/v1.0.11...v1.0.12) (2024-11-15)
 
 
