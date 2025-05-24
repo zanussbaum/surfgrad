@@ -15,7 +15,8 @@
     "unit": "npm run build-clean && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "integration": "npm run build-clean && npx playwright test",
     "benchmark": "npm run build-clean && cd benchmarks && npm install && npm start",
-    "lint": "npx eslint src tests"
+    "lint": "npx eslint src tests",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
