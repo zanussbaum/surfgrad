@@ -10,11 +10,17 @@ export class Mul extends BinaryOp {
       if (b.shape.length === 1 && b.shape[0] === 1) {
         // Broadcast scalar
         b = Tensor.full(a.shape, b.data[0], b.requires_grad);
+      } else if (b.shape[0] === 1 && b.shape[1] === a.shape[1]) {
+        // broadcast [1, n] to [m, n]
+        b = Tensor.full(a.shape, b.data[0], b.requires_grad);
       } else {
         throw new Error(
           `Incompatible shapes for Mul: ${a.shape} and ${b.shape}`,
         );
       }
+    }
+    if (a.shape.length === 1) {
+      a.shape = [a.shape[0], 1];
     }
     return b;
   }

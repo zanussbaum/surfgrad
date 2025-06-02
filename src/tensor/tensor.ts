@@ -6,8 +6,16 @@ import { Log2 } from "../ops/log2.js";
 import { ReLU } from "../ops/relu.js";
 import { Exp2 } from "../ops/exp2.js";
 import { Ln } from "../ops/ln.js";
+import { Div } from "../ops/div.js";
 
 import { AutogradFunction } from "../autograd/function.js";
+
+type SliceArg =
+  | number
+  | [number | null]
+  | [number | null, number | null]
+  | [number | null, number | null, number | null]
+  | ":";
 
 export class Tensor {
   data: Float32Array;
@@ -52,6 +60,41 @@ export class Tensor {
     return Tensor.full(tensor.shape, 0, tensor.requires_grad);
   }
 
+  static randn(shape: number[], requires_grad = false) {
+    const data = new Float32Array(shape.reduce((a, b) => a * b));
+
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    return new Tensor(data, shape, requires_grad);
+  }
+
+  static normal(
+    shape: number[],
+    requires_grad = false,
+    initializer_range = 0.01,
+  ) {
+    const data = new Float32Array(shape.reduce((a, b) => a * b));
+
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random() * 2 * initializer_range - initializer_range;
+    }
+
+    return new Tensor(data, shape, requires_grad);
+  }
+
+  static broadcast(tensor: Tensor, size: number, requires_grad = false) {
+    const shape = [size, ...tensor.shape];
+    const data = new Float32Array(shape.reduce((a, b) => a * b));
+
+    for (let i = 0; i < data.length; i++) {
+      data[i] = tensor.data[i % tensor.shape.reduce((a, b) => a * b)];
+    }
+
+    return new Tensor(data, shape, requires_grad);
+  }
+
   async add(tensor: Tensor) {
     const addOp = await Add.create();
 
@@ -62,6 +105,182 @@ export class Tensor {
     const mulOp = await Mul.create();
 
     return mulOp.forward(this, tensor);
+  }
+
+  async sub(tensor: Tensor) {
+    if (tensor.shape.length === 1 && this.shape.length === 2) {
+      // Broadcasting [n] to [m, n]
+      const newShape = [this.shape[0], tensor.shape[0]];
+      tensor = Tensor.full(newShape, tensor.data[0], tensor.requires_grad);
+    }
+
+    const negOne = Tensor.full(tensor.shape, -1, false);
+    const [negTensor] = await tensor.mul(negOne);
+    console.log("this.shape", this.shape);
+    return this.add(negTensor);
+  }
+
+  async mean(dims: number[]): Promise<Tensor> {
+    // Calculate new shape after reduction
+    const shape = this.shape.slice();
+    const size = dims.reduce((acc, dim) => acc * shape[dim], 1);
+
+    dims.sort((a, b) => b - a); // Sort in descending order to remove correctly
+    dims.forEach((dim) => shape.splice(dim, 1));
+    if (shape.length === 0) shape.push(1);
+
+    const result = new Float32Array(shape.reduce((a, b) => a * b, 1));
+
+    // For 1D case
+    if (this.shape.length === 1 && dims.includes(0)) {
+      let sum = 0;
+      for (let i = 0; i < this.data.length; i++) {
+        sum += this.data[i];
+      }
+      result[0] = sum / size;
+      return new Tensor(result, shape, this.requires_grad);
+    }
+
+    // For higher dimensions (keeping existing logic for 2D)
+    const stride = this.shape[1];
+    for (let i = 0; i < this.shape[0]; i++) {
+      let sum = 0;
+      for (let j = 0; j < stride; j++) {
+        sum += this.data[i * stride + j];
+      }
+      result[i] = sum / size;
+    }
+
+    return new Tensor(result, shape, this.requires_grad);
+  }
+
+  async sum(dims: number[]): Promise<Tensor> {
+    const shape = this.shape.slice();
+
+    // Sort dimensions in descending order for correct removal
+    dims.sort((a, b) => b - a);
+    dims.forEach((dim) => shape.splice(dim, 1));
+    if (shape.length === 0) shape.push(1);
+
+    const result = new Float32Array(shape.reduce((a, b) => a * b, 1));
+
+    // Special case: if we're summing all dimensions, just sum everything
+    if (
+      dims.length === this.shape.length ||
+      (this.shape.length === 2 && dims.includes(0) && dims.includes(1))
+    ) {
+      let sum = 0;
+      for (let i = 0; i < this.data.length; i++) {
+        sum += this.data[i];
+      }
+      result[0] = sum;
+      return new Tensor(result, [1], this.requires_grad);
+    }
+
+    // For 1D case
+    if (this.shape.length === 1 && dims.includes(0)) {
+      let sum = 0;
+      for (let i = 0; i < this.data.length; i++) {
+        sum += this.data[i];
+      }
+      result[0] = sum;
+      return new Tensor(result, shape, this.requires_grad);
+    }
+
+    // For 2D case
+    if (this.shape.length === 2) {
+      if (dims.includes(0)) {
+        // Sum along first dimension (vertically)
+        const cols = this.shape[1];
+        const rows = this.shape[0];
+        for (let j = 0; j < cols; j++) {
+          let sum = 0;
+          for (let i = 0; i < rows; i++) {
+            sum += this.data[i * cols + j];
+          }
+          result[j] = sum;
+        }
+      } else if (dims.includes(1)) {
+        // Sum along second dimension (horizontally)
+        const cols = this.shape[1];
+        const rows = this.shape[0];
+        for (let i = 0; i < rows; i++) {
+          let sum = 0;
+          for (let j = 0; j < cols; j++) {
+            sum += this.data[i * cols + j];
+          }
+          result[i] = sum;
+        }
+      }
+    }
+
+    return new Tensor(result, shape, this.requires_grad);
+  }
+
+  async pow(p: number): Promise<[Tensor]> {
+    const result = new Float32Array(this.data.length);
+    for (let i = 0; i < this.data.length; i++) {
+      result[i] = this.data[i] ** p;
+    }
+    return [new Tensor(result, this.shape.slice(), this.requires_grad)];
+  }
+
+  async norm(p: number = 2, dim: number = 0): Promise<[Tensor]> {
+    const [norm] = await this.pow(p);
+    const sumNorm = await norm.sum([dim]);
+    const [rootNorm] = await sumNorm.pow(1 / p);
+    return [rootNorm];
+  }
+
+  async variance(dims: number[]): Promise<Tensor> {
+    const mean = await this.mean(dims);
+    const shape = this.shape.slice();
+    const size = dims.reduce((acc, dim) => acc * shape[dim], 1);
+
+    dims.sort((a, b) => b - a);
+    dims.forEach((dim) => shape.splice(dim, 1));
+    if (shape.length === 0) shape.push(1);
+
+    const result = new Float32Array(shape.reduce((a, b) => a * b, 1));
+
+    // For 1D case
+    if (this.shape.length === 1 && dims.includes(0)) {
+      let sumSquaredDiff = 0;
+      const meanValue = mean.data[0];
+      for (let i = 0; i < this.data.length; i++) {
+        const diff = this.data[i] - meanValue;
+        sumSquaredDiff += diff * diff;
+      }
+      result[0] = sumSquaredDiff / size;
+      return new Tensor(result, shape, this.requires_grad);
+    }
+
+    // For higher dimensions
+    const stride = this.shape[1];
+    for (let i = 0; i < this.shape[0]; i++) {
+      let sumSquaredDiff = 0;
+      const meanValue = mean.data[i];
+      for (let j = 0; j < stride; j++) {
+        const diff = this.data[i * stride + j] - meanValue;
+        sumSquaredDiff += diff * diff;
+      }
+      result[i] = sumSquaredDiff / size;
+    }
+
+    return new Tensor(result, shape, this.requires_grad);
+  }
+
+  async sqrt(): Promise<Tensor> {
+    const result = new Float32Array(this.data.length);
+    for (let i = 0; i < this.data.length; i++) {
+      result[i] = Math.sqrt(this.data[i]);
+    }
+    return new Tensor(result, this.shape.slice(), this.requires_grad);
+  }
+
+  async div(tensor: Tensor): Promise<[Tensor, number]> {
+    const divOp = await Div.create();
+    return divOp.forward(this, tensor);
   }
 
   async matmul(tensor: Tensor) {
@@ -98,6 +317,30 @@ export class Tensor {
     const reluOp = await ReLU.create();
 
     return reluOp.forward(this);
+  }
+
+  async gather(indices: Tensor): Promise<[Tensor, number]> {
+    // For input shape [batch_size] and embedding matrix [vocab_size, embedding_dim]
+    // We want output shape [batch_size, embedding_dim]
+    const batchSize = indices.shape[0];
+    const embeddingDim = this.shape[1];
+    const result = new Float32Array(batchSize * embeddingDim);
+
+    // For each item in the batch
+    for (let i = 0; i < batchSize; i++) {
+      const tokenId = indices.data[i];
+      // Copy the entire embedding vector for this token
+      const sourceOffset = tokenId * embeddingDim;
+      const targetOffset = i * embeddingDim;
+      for (let j = 0; j < embeddingDim; j++) {
+        result[targetOffset + j] = this.data[sourceOffset + j];
+      }
+    }
+
+    return [
+      new Tensor(result, [batchSize, embeddingDim], indices.requires_grad),
+      -1,
+    ];
   }
 
   transpose() {
@@ -162,5 +405,297 @@ export class Tensor {
     dfs(this);
 
     return topo_order;
+  }
+
+  async concat(tensor: Tensor, axis: number): Promise<Tensor> {
+    // Validate axis
+    if (axis < 0 || axis >= this.shape.length) {
+      throw new Error(
+        `Invalid axis ${axis}. Must be between 0 and ${this.shape.length - 1}`,
+      );
+    }
+
+    // For axis 0 concatenation, all other dimensions must match exactly
+    if (axis === 0) {
+      // For 1D tensors, they must have the same shape
+      if (this.shape.length === 1 && this.shape[0] !== tensor.shape[0]) {
+        throw new Error(
+          `Shape mismatch: tensors have different shapes at non-concatenating dimensions`,
+        );
+      }
+    }
+
+    // For other axes, validate shapes - all dimensions except concat axis must match
+    for (let i = 0; i < this.shape.length; i++) {
+      if (i !== axis && this.shape[i] !== tensor.shape[i]) {
+        throw new Error(
+          `Shape mismatch: tensors have different shapes at non-concatenating dimensions`,
+        );
+      }
+    }
+
+    // Calculate new shape
+    const newShape = [...this.shape];
+    newShape[axis] += tensor.shape[axis];
+
+    // Create new data array
+    const newData = new Float32Array(newShape.reduce((a, b) => a * b));
+
+    // Calculate strides for both tensors
+    const stride = this.shape[axis];
+    const preAxisSize = this.shape.slice(0, axis).reduce((a, b) => a * b, 1);
+    const postAxisSize = this.shape.slice(axis + 1).reduce((a, b) => a * b, 1);
+
+    // Copy data from both tensors
+    for (let i = 0; i < preAxisSize; i++) {
+      for (let j = 0; j < postAxisSize; j++) {
+        // Copy from first tensor
+        for (let k = 0; k < this.shape[axis]; k++) {
+          const srcIdx = i * stride * postAxisSize + k * postAxisSize + j;
+          const dstIdx =
+            i * (stride + tensor.shape[axis]) * postAxisSize +
+            k * postAxisSize +
+            j;
+          newData[dstIdx] = this.data[srcIdx];
+        }
+        // Copy from second tensor
+        for (let k = 0; k < tensor.shape[axis]; k++) {
+          const srcIdx =
+            i * tensor.shape[axis] * postAxisSize + k * postAxisSize + j;
+          const dstIdx =
+            i * (stride + tensor.shape[axis]) * postAxisSize +
+            (k + stride) * postAxisSize +
+            j;
+          newData[dstIdx] = tensor.data[srcIdx];
+        }
+      }
+    }
+
+    return new Tensor(
+      newData,
+      newShape,
+      this.requires_grad || tensor.requires_grad,
+    );
+  }
+  async slice(...args: SliceArg[]): Promise<Tensor> {
+    if (args.length > this.shape.length) {
+      throw new Error(
+        `Too many indices for tensor of dimension ${this.shape.length}`,
+      );
+    }
+
+    // Convert all arguments to normalized slice specs
+    const slices = args.map((arg, dim) =>
+      this.normalizeSlice(arg, this.shape[dim]),
+    );
+
+    // Calculate output shape and stride info
+    const { outputShape, isReducedDim } = this.calculateOutputShape(
+      slices,
+      this.shape,
+    );
+
+    // Handle empty result case
+    if (outputShape.length === 0 || outputShape.some((dim) => dim === 0)) {
+      return new Tensor(new Float32Array(0), outputShape, this.requires_grad);
+    }
+
+    // Create output tensor
+    const outputSize = outputShape.reduce((a, b) => a * b, 1);
+    const result = new Float32Array(outputSize);
+
+    // For each output position, calculate corresponding input position
+    await this.populateSlicedData(
+      result,
+      outputSize,
+      outputShape,
+      slices,
+      isReducedDim,
+    );
+
+    return new Tensor(result, outputShape, this.requires_grad);
+  }
+
+  private async populateSlicedData(
+    result: Float32Array,
+    outputSize: number,
+    outputShape: number[],
+    slices: [number, number, number][],
+    isReducedDim: boolean[],
+  ): Promise<void> {
+    // Process in chunks to avoid blocking the main thread
+    const CHUNK_SIZE = 1000;
+
+    for (let i = 0; i < outputSize; i += CHUNK_SIZE) {
+      const end = Math.min(i + CHUNK_SIZE, outputSize);
+
+      for (let j = i; j < end; j++) {
+        const outputCoords = this.indexToCoords(j, outputShape);
+        const inputCoords = this.mapToInputCoords(
+          outputCoords,
+          slices,
+          isReducedDim,
+        );
+        const inputIndex = this.coordsToIndex(inputCoords, this.shape);
+        result[j] = this.data[inputIndex];
+      }
+
+      // Yield to event loop periodically
+      if (end < outputSize) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+  }
+
+  private calculateOutputShape(
+    slices: [number, number, number][],
+    inputShape: number[],
+  ) {
+    // Pad slices to match input dimensions
+    const fullSlices = [...slices];
+    while (fullSlices.length < inputShape.length) {
+      fullSlices.push([0, inputShape[fullSlices.length], 1]);
+    }
+
+    // Track which dimensions are being reduced (single number index)
+    const isReducedDim = fullSlices.map(
+      ([start, end, step]) => end - start === 1 && step === 1,
+    );
+
+    // Calculate output shape, handling both positive and negative steps
+    const outputShape = fullSlices
+      .map(([start, end, step], i) => {
+        if (isReducedDim[i]) return 0;
+
+        if (step > 0) {
+          return Math.max(0, Math.ceil((end - start) / step));
+        } else {
+          // For negative steps, we need to handle the range differently
+          // When going backwards, we need to include the start position
+          const numElements = Math.max(
+            0,
+            Math.ceil((start - end + 1) / Math.abs(step)),
+          );
+          return numElements;
+        }
+      })
+      .filter((size) => size !== 0);
+
+    return { outputShape, isReducedDim };
+  }
+
+  private normalizeSlice(
+    arg: SliceArg,
+    dimSize: number,
+  ): [number, number, number] {
+    // Handle single number index
+    if (typeof arg === "number") {
+      const idx = arg < 0 ? dimSize + arg : arg;
+      if (idx < 0 || idx >= dimSize) {
+        throw new Error(
+          `Index ${arg} is out of bounds for dimension ${dimSize}`,
+        );
+      }
+      return [idx, idx + 1, 1];
+    }
+
+    // Handle full slice
+    if (arg === ":") {
+      return [0, dimSize, 1];
+    }
+
+    // Handle array spec [start, end, step]
+    let [start, end, step] = arg as [
+      number | null,
+      number | null,
+      number | null,
+    ];
+    step = step ?? 1;
+
+    if (step === 0) {
+      throw new Error("Slice step cannot be zero");
+    }
+
+    // Handle negative step
+    if (step < 0) {
+      // Default start is end of dimension for negative step
+      start = start ?? dimSize - 1;
+      // Default end is before beginning of dimension
+      end = end ?? -1;
+
+      // Convert negative indices to positive
+      start = start < 0 ? dimSize + start : start;
+      // For negative step, don't convert negative end index if it's the default -1
+      end = end < 0 && end !== -1 ? dimSize + end : end;
+
+      // Clamp to valid range for negative step
+      start = Math.min(dimSize - 1, Math.max(0, start));
+      end = Math.min(dimSize - 1, Math.max(0, end));
+    } else {
+      // Default start is beginning of dimension for positive step
+      start = start ?? 0;
+      // Default end is end of dimension
+      end = end ?? dimSize;
+
+      // Convert negative indices to positive
+      start = start < 0 ? dimSize + start : start;
+      end = end < 0 ? dimSize + end : end;
+
+      // Clamp to valid range
+      start = Math.min(dimSize - 1, Math.max(0, start));
+      end = Math.min(dimSize, Math.max(0, end));
+    }
+
+    return [start, end, step];
+  }
+
+  private indexToCoords(index: number, shape: number[]): number[] {
+    const coords = [];
+    let remaining = index;
+    let stride = shape.reduce((a, b) => a * b, 1);
+
+    for (const dimSize of shape) {
+      stride = stride / dimSize;
+      const coord = Math.floor(remaining / stride);
+      remaining = remaining % stride;
+      coords.push(coord);
+    }
+
+    return coords;
+  }
+
+  private mapToInputCoords(
+    outputCoords: number[],
+    slices: [number, number, number][],
+    isReducedDim: boolean[],
+  ): number[] {
+    const inputCoords: number[] = [];
+    let outputIdx = 0;
+
+    for (let i = 0; i < isReducedDim.length; i++) {
+      if (isReducedDim[i]) {
+        // For reduced dimensions, use the start index
+        inputCoords.push(slices[i][0]);
+      } else {
+        // For slice dimensions, calculate the actual position
+        const [start, , step] = slices[i];
+        inputCoords.push(start + outputCoords[outputIdx] * step);
+        outputIdx++;
+      }
+    }
+
+    return inputCoords;
+  }
+
+  private coordsToIndex(coords: number[], shape: number[]): number {
+    let index = 0;
+    let stride = 1;
+
+    for (let i = coords.length - 1; i >= 0; i--) {
+      index += coords[i] * stride;
+      stride *= shape[i];
+    }
+
+    return index;
   }
 }
